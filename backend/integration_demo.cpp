@@ -8,6 +8,7 @@
 #include <sstream> //This lets us treat a string like an input stream, which we 
                    //can use to parse the date.
 #include <cctype>
+#include <chrono>
 
 bool isValidDate(const std::string& date) {
     // Check the length and hyphen positions.
@@ -113,8 +114,10 @@ int main(int argc, char* argv[]) {
                 "EndDate,Duration,Reason,Status\n";
     }
 
-    long long requestId =
-        static_cast<long long>(std::time(nullptr));
+    long long requestId = //requestID is the time of applying leave in milliseconds.
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()
+        ).count();
 
     CasualLeave leave( //This is casual leave object.
         static_cast<int>(requestId % 2147483647),
@@ -146,7 +149,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Request ID: " << requestId << '\n';
     std::cout << "Employee ID: " << employeeId << '\n';
     std::cout << "Leave Type: " << leave.getLeaveType() << '\n';
-    std::cout << "Duration: " << duration << " days\n";
     std::cout << "Status: PENDING\n";
 
     return 0;
