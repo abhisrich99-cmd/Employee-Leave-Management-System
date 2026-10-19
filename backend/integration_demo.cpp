@@ -110,18 +110,20 @@ int main(int argc, char* argv[]) {
 
     if (needsHeader) {
         file << "RequestID,EmployeeID,LeaveType,StartDate,"
-                "EndDate,Reason,Status\n";
+                "EndDate,Duration,Reason,Status\n";
     }
 
     long long requestId =
         static_cast<long long>(std::time(nullptr));
 
-    CasualLeave leave(
+    CasualLeave leave( //This is casual leave object.
         static_cast<int>(requestId % 2147483647),
         startDate,
         endDate,
         reason
     );
+
+    int duration = leave.calculateDays();
 
     // Keep this prototype's CSV fields simple:
     // avoid commas in the reason.
@@ -135,6 +137,7 @@ int main(int argc, char* argv[]) {
          << leave.getLeaveType() << ','
          << startDate << ','
          << endDate << ','
+         << duration << ","
          << reason << ",PENDING\n";
 
     file.close();
@@ -143,6 +146,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Request ID: " << requestId << '\n';
     std::cout << "Employee ID: " << employeeId << '\n';
     std::cout << "Leave Type: " << leave.getLeaveType() << '\n';
+    std::cout << "Duration: " << duration << " days\n";
     std::cout << "Status: PENDING\n";
 
     return 0;
