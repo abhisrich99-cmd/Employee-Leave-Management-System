@@ -41,7 +41,7 @@ function updateDuration() {
 startInput.addEventListener("change", updateDuration);
 endInput.addEventListener("change", updateDuration);
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async(event) => {
     event.preventDefault();
 
     const employeeId = document.getElementById("employeeId").value.trim();
@@ -68,30 +68,38 @@ form.addEventListener("submit", (event) => {
     const item = document.createElement("div");
     item.className = "request-item";
 
-    const title = document.createElement("h3");
-    title.textContent = leaveType;
+       try {
+        const response = await fetch("/apply", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                employeeId: employeeId,
+                leaveType: leaveType,
+                startDate: startDate,
+                endDate: endDate,
+                reason: reason
+            })
+        });
 
-    const dates = document.createElement("p");
-    dates.textContent = `${startDate} to ${endDate}`;
+        const message = await response.text();
 
-    const reasonText = document.createElement("p");
-    reasonText.textContent = `Reason: ${reason}`;
+        if (!response.ok) {
+            alert(message);
+            return;
+        }
 
-    const status = document.createElement("span");
-    status.className = "status";
-    status.textContent = "DEMO — NOT SUBMITTED";
+        alert("Leave request submitted successfully!\n\n" + message);
 
-    item.append(title, dates, reasonText, status);
+        form.reset();
+        durationPreview.textContent =
+            "Select your dates to calculate duration.";
 
-    const emptyState = requestList.querySelector(".empty-state");
-    if (emptyState) {
-        emptyState.remove();
+    } catch (error) {
+        alert("Could not connect to the Flask server. Make sure it is running.");
+        console.error(error);
     }
-
-    requestList.prepend(item);
-    form.reset();
-    durationPreview.textContent =
-        "Select your dates to calculate duration.";
 });
 
 document.querySelectorAll(".nav-link").forEach((link) => {
