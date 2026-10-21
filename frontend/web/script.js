@@ -27,22 +27,35 @@ async function loadRequests() {
             const item = document.createElement("div");
             item.className = "request-item";
 
-            const title = document.createElement("h3");
-            title.textContent = request.LeaveType;
+           const title = document.createElement("h3");
+           title.textContent = request.LeaveType;
 
-            const dates = document.createElement("p");
-            dates.textContent =
-                `${request.StartDate} to ${request.EndDate}`;
+           const employee = document.createElement("p");
+           employee.textContent = `Employee ID: ${request.EmployeeID}`;
 
-            const reason = document.createElement("p");
-            reason.textContent = `Reason: ${request.Reason}`;
+           const dates = document.createElement("p");
+           dates.textContent = `Dates: ${request.StartDate} to ${request.EndDate}`;
 
-            const status = document.createElement("span");
-            status.className = "status";
-            status.textContent = request.Status;
+           const duration = document.createElement("p");
+           duration.textContent =  `Duration: ${request.Duration} day(s)`;
 
-            item.append(title, dates, reason, status);
-            requestList.appendChild(item);
+           const reason = document.createElement("p");
+           reason.textContent = `Reason: ${request.Reason}`;
+
+           const status = document.createElement("span");
+           status.className = "status";
+           status.textContent = request.Status;
+
+           item.append(
+           title,
+           employee,
+           dates,
+           duration,
+           reason,
+           status
+);
+
+requestList.appendChild(item);
         });
     } catch (error) {
         console.error("Error loading requests:", error);
@@ -117,9 +130,6 @@ form.addEventListener("submit", async(event) => {
         alert("Please do not use commas in the reason.");
         return;
     }
-
-    const item = document.createElement("div");
-    item.className = "request-item";
 
        try {
         const response = await fetch("/apply", {
