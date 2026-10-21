@@ -1,4 +1,5 @@
-from flask import Flask, send_from_directory,request #request reads the data submitted by the website.
+import csv
+from flask import Flask, send_from_directory,request, jsonify #request reads the data submitted by the website.
 import subprocess #Allows python to run your existing C++ executable.
 from pathlib import Path
 
@@ -8,6 +9,7 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 BACKEND_EXE = PROJECT_DIR / "backend" / "leave_backend.exe"
+CSV_FILE = PROJECT_DIR / "data" / "leave_requests.csv"
 
 @app.route("/")
 def home():
@@ -57,6 +59,18 @@ def apply_leave():
 
     except subprocess.TimeoutExpired:
         return "The backend took too long to respond.", 504
+
+@app.route("/requests", methods=["GET"]) #This helps in reading the previous leave requests
+def get_requests():                      #which were saved in the csv file and returns them
+                                         #in JSON format so that JavaScript can understand it.
+    if not CSV_FILE.exists():
+        return jsonify([])
+
+    with open(CSV_FILE, "r", newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        requests_list = list(reader)
+
+    return jsonify(requests_list)
 
 if __name__ == "__main__":
     app.run(debug=True)
