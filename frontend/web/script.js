@@ -4,6 +4,59 @@ const endInput = document.getElementById("endDate");
 const durationPreview = document.getElementById("durationPreview");
 const requestList = document.getElementById("requestList");
 
+//The meaning of the upcoming function is below the function.
+async function loadRequests() {
+    try {
+        const response = await fetch("/requests");
+
+        if (!response.ok) {
+            throw new Error("Could not load leave requests.");
+        }
+
+        const requests = await response.json();
+
+        requestList.innerHTML = "";
+
+        if (requests.length === 0) {
+            requestList.innerHTML =
+                '<p class="empty-state">No leave requests yet.</p>';
+            return;
+        }
+
+        requests.forEach((request) => {
+            const item = document.createElement("div");
+            item.className = "request-item";
+
+            const title = document.createElement("h3");
+            title.textContent = request.LeaveType;
+
+            const dates = document.createElement("p");
+            dates.textContent =
+                `${request.StartDate} to ${request.EndDate}`;
+
+            const reason = document.createElement("p");
+            reason.textContent = `Reason: ${request.Reason}`;
+
+            const status = document.createElement("span");
+            status.className = "status";
+            status.textContent = request.Status;
+
+            item.append(title, dates, reason, status);
+            requestList.appendChild(item);
+        });
+    } catch (error) {
+        console.error("Error loading requests:", error);
+    }
+}
+
+loadRequests();
+
+//fetch("/requests") asks Flask for the saved requests.
+//await response.json() waits for the response and converts it into JavaScript data.
+//requests.forEach(...) processes each saved request.
+//The code creates a card showing its leave type, dates, reason, and status.
+//loadRequests() at the end runs the function when the page loads.
+
 function updateDuration() {
     const start = startInput.value;
     const end = endInput.value;
@@ -95,6 +148,8 @@ form.addEventListener("submit", async(event) => {
         form.reset();
         durationPreview.textContent =
             "Select your dates to calculate duration.";
+
+        await loadRequests();
 
     } catch (error) {
         alert("Could not connect to the Flask server. Make sure it is running.");
