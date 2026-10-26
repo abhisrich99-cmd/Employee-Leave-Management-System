@@ -372,7 +372,46 @@ document.querySelectorAll(".nav-link").forEach(link => {
 });
 
 
+ // ---------------- LOAD EMPLOYEE LEAVE BALANCES ----------------
+
+async function loadBalances() {
+    const casualBalance = document.getElementById("casualBalance");
+    const sickBalance = document.getElementById("sickBalance");
+    const earnedBalance = document.getElementById("earnedBalance");
+
+    // This function runs only on the employee page.
+    if (!casualBalance || !sickBalance || !earnedBalance) return;
+
+    try {
+        const response = await fetch("/my-balances");
+
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = "/login-page";
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error("Could not load leave balances.");
+        }
+
+        const balances = await response.json();
+
+        casualBalance.innerHTML =
+            `${balances["Casual Leave"]} <small>days</small>`;
+
+        sickBalance.innerHTML =
+            `${balances["Sick Leave"]} <small>days</small>`;
+
+        earnedBalance.innerHTML =
+            `${balances["Earned Leave"]} <small>days</small>`;
+
+    } catch (error) {
+        console.error("Error loading leave balances:", error);
+    }
+}
+
 // ---------------- INITIALIZE ----------------
 
 loadRequests();
 loadAdminRequests();
+loadBalances();

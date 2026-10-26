@@ -17,4 +17,5 @@ frontend/users.json
 data/leave_requests.csv
 data/leave_requests.tmp
 
-
+# Employee leave balances
+data/leave_balances.json

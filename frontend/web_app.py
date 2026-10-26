@@ -25,6 +25,7 @@ WEB_DIR = Path(__file__).resolve().parent / "web"
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 BACKEND_EXE = PROJECT_DIR / "backend" / "leave_backend.exe"
 CSV_FILE = PROJECT_DIR / "data" / "leave_requests.csv"
+BALANCES_FILE = PROJECT_DIR / "data" / "leave_balances.json"
 USERS_FILE = Path(__file__).resolve().parent / "users.json"
 
 
@@ -238,6 +239,7 @@ def get_my_requests():
 
 # ---------------- APPROVE OR REJECT (ADMIN ONLY) ----------------
 
+
 @app.route("/update-status", methods=["POST"])
 @require_role("admin")
 def update_status():
@@ -253,9 +255,14 @@ def update_status():
     if not CSV_FILE.exists():
         return "Leave requests file not found.", 404
 
+    if not BALANCES_FILE.exists():
+        return "Leave balances file not found.", 500
+
     temp_file = CSV_FILE.with_suffix(".tmp")
+    balances_temp_file = BALANCES_FILE.with_suffix(".tmp")
 
     try:
+        # Read leave requests
         with open(CSV_FILE, "r", newline="", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             fieldnames = reader.fieldnames
@@ -265,42 +272,135 @@ def update_status():
             not fieldnames
             or "RequestID" not in fieldnames
             or "Status" not in fieldnames
+            or "EmployeeID" not in fieldnames
+            or "LeaveType" not in fieldnames
+            or "Duration" not in fieldnames
         ):
             return "Invalid CSV format.", 500
 
-        found = False
+        # Find the pending request
+        target = None
 
         for row in rows:
-            if row["RequestID"] == request_id:
-                if row["Status"] != "PENDING":
-                    return "This request has already been processed.", 400
-
-                row["Status"] = new_status
-                found = True
+            if row.get("RequestID") == request_id:
+                target = row
                 break
 
-        if not found:
+        if target is None:
             return "Leave request not found.", 404
+
+        if target.get("Status") != "PENDING":
+            return "This request has already been processed.", 400
+
+        employee_id = target.get("EmployeeID", "")
+        leave_type = target.get("LeaveType", "")
+
+        try:
+            days = int(target.get("Duration", "0"))
+        except (ValueError, TypeError):
+            return "Invalid leave duration.", 500
+
+        if days <= 0:
+            return "Invalid leave duration.", 400
+
+        # Read employee balances
+        with open(BALANCES_FILE, "r", encoding="utf-8") as file:
+            balances = json.load(file)
+
+        if not isinstance(balances, dict):
+            return "Invalid leave balances file.", 500
+
+        # Only approvals deduct leave
+        if new_status == "APPROVED":
+            employee_balances = balances.get(employee_id)
+
+            if not isinstance(employee_balances, dict):
+                return "No leave balances found for this employee.", 400
+
+            if leave_type not in employee_balances:
+                return "Invalid leave type in request.", 400
+
+            current_balance = employee_balances[leave_type]
+
+            if (
+                not isinstance(current_balance, int)
+                or isinstance(current_balance, bool)
+                or current_balance < 0
+            ):
+                return "Invalid employee leave balance.", 500
+
+            if current_balance < days:
+                return (
+                    f"Insufficient {leave_type} balance. "
+                    f"Available: {current_balance} day(s); "
+                    f"requested: {days} day(s)."
+                ), 400
+
+            # Deduct from the employee's balance
+            employee_balances[leave_type] = current_balance - days
+
+        # Update request status in memory
+        target["Status"] = new_status
+
+        # Write both temporary files before replacing either original
+        with open(balances_temp_file, "w", encoding="utf-8") as file:
+            json.dump(balances, file, indent=4)
+            file.write("\n")
 
         with open(temp_file, "w", newline="", encoding="utf-8") as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(rows)
 
+        # Save balances first, then update the request status
+        if new_status == "APPROVED":
+            balances_temp_file.replace(BALANCES_FILE)
+
         temp_file.replace(CSV_FILE)
 
         return f"Leave request {new_status.lower()} successfully.", 200
 
-    except (OSError, csv.Error):
-        app.logger.exception("Could not update leave request")
-        return "Could not update leave request.", 500
+    except (OSError, csv.Error, json.JSONDecodeError):
+        app.logger.exception("Could not update leave request or balances")
+        return "Could not update leave request or balances.", 500
 
     finally:
-        if temp_file.exists():
-            try:
-                temp_file.unlink()
-            except OSError:
-                pass
+        for path in (temp_file, balances_temp_file):
+            if path.exists():
+                try:
+                    path.unlink()
+                except OSError:
+                    pass
+
+
+@app.route("/my-balances", methods=["GET"])
+@require_role("employee")
+def get_my_balances():
+    employee_id = session["username"]
+
+    if not BALANCES_FILE.exists():
+        return jsonify({
+            "message": "Leave balances not found."
+        }), 404
+
+    try:
+        with open(BALANCES_FILE, "r", encoding="utf-8") as file:
+            balances = json.load(file)
+
+        employee_balances = balances.get(employee_id)
+
+        if employee_balances is None:
+            return jsonify({
+                "message": "No balances found for this employee."
+            }), 404
+
+        return jsonify(employee_balances)
+
+    except (OSError, json.JSONDecodeError):
+        app.logger.exception("Could not read leave balances")
+        return jsonify({
+            "message": "Could not read leave balances."
+        }), 500
 
 
 if __name__ == "__main__":
