@@ -1,3 +1,4 @@
+
 #include "../include/Employee.h"
 #include <iostream>
 
@@ -10,15 +11,16 @@ Employee::Employee(const std::string& userId,
     : User(userId, name, password),
       email(email),
       phone(phone),
-      department(department) {
+      department(department),
+      leaveBalance() {
 }
 
 void Employee::displayProfile() const {
-    std::cout << "Employee ID: " << userId << std::endl;
-    std::cout << "Name: " << name << std::endl;
-    std::cout << "Email: " << email << std::endl;
-    std::cout << "Phone: " << phone << std::endl;
-    std::cout << "Department: " << department << std::endl;
+    std::cout << "User ID: " << getUserId() << '\n';
+    std::cout << "Name: " << getName() << '\n';
+    std::cout << "Email: " << email << '\n';
+    std::cout << "Phone: " << phone << '\n';
+    std::cout << "Department: " << department << '\n';
 }
 
 std::string Employee::getEmail() const {
@@ -31,4 +33,16 @@ std::string Employee::getPhone() const {
 
 std::string Employee::getDepartment() const {
     return department;
+}
+
+int Employee::getLeaveBalance(const std::string& leaveType) const {
+    return leaveBalance.getBalance(leaveType);
+}
+
+bool Employee::deductLeave(const std::string& leaveType, int days) {
+    return leaveBalance.deductLeave(leaveType, days);
+}
+
+void Employee::displayLeaveBalance() const {
+    leaveBalance.displayBalance();
 }

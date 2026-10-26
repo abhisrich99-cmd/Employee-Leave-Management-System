@@ -12,6 +12,9 @@ std::string EarnedLeave::getLeaveType() const {
     return "Earned Leave";
 }
 
+int EarnedLeave::getMaximumDays() const {
+    return 15;
+}
 void EarnedLeave::display() const {
     std::cout << "Leave Type: " << getLeaveType() << '\n';
     std::cout << "Start Date: " << startDate << '\n';

@@ -123,6 +123,12 @@ int main(int argc, char* argv[]) {
 
     int duration = leave->calculateDays();
 
+    if (duration > leave->getMaximumDays()) {
+    std::cout << "Error: " << leave->getLeaveType()
+              << " exceeds the maximum allowed duration of "
+              << leave->getMaximumDays() << " days per request.\n";
+    return 1;
+}
     std::ifstream checkFile("data/leave_requests.csv");
     bool needsHeader = !checkFile.good();
     checkFile.close();

@@ -12,6 +12,9 @@ std::string SickLeave::getLeaveType() const {
     return "Sick Leave";
 }
 
+int SickLeave::getMaximumDays() const {
+    return 10;
+}
 void SickLeave::display() const {
     std::cout << "Leave Type: " << getLeaveType() << '\n';
     std::cout << "Start Date: " << startDate << '\n';

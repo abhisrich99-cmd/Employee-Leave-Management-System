@@ -12,6 +12,9 @@ std::string CasualLeave::getLeaveType() const {
     return "Casual Leave";
 }
 
+int CasualLeave::getMaximumDays() const {
+    return 3;
+}
 void CasualLeave::display() const {
     std::cout << "Leave ID: " << leaveId << '\n';
     std::cout << "Leave Type: " << getLeaveType() << '\n';

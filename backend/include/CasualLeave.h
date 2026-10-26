@@ -11,7 +11,12 @@ public:
                 const std::string& reason);
 
     std::string getLeaveType() const override;
+
+    int getMaximumDays() const override;
+    
     void display() const override;
+
+    
 };
 
 #endif
