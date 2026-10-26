@@ -1,5 +1,20 @@
+
 # Compiled C++ executables
 backend/leave_backend.exe
 backend/test_leave.exe
+
+# Python cache and virtual environment
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local credentials and secrets
+frontend/users.json
+.env
+
+# Local leave request data
+data/leave_requests.csv
+data/leave_requests.tmp
 
 

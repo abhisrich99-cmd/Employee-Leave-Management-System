@@ -488,3 +488,50 @@ footer {
         gap: 0;
     }
 }
+
+
+/* Admin action buttons */
+.admin-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.admin-actions button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-actions .primary-button {
+    background-color: #6953e8;
+    color: white;
+}
+
+.admin-actions .reject-button {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.admin-actions button:hover {
+    opacity: 0.85;
+}
+
+.status.approved {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status.rejected {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.status.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}

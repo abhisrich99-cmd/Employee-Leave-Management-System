@@ -1,76 +1,255 @@
+
 const form = document.getElementById("leaveForm");
 const startInput = document.getElementById("startDate");
 const endInput = document.getElementById("endDate");
 const durationPreview = document.getElementById("durationPreview");
 const requestList = document.getElementById("requestList");
+const adminRequestList = document.getElementById("adminRequestList");
 
-//The meaning of the upcoming function is below the function.
+
+// ---------------- LOGOUT ----------------
+
+const logoutButton = document.getElementById("logoutButton");
+
+if (logoutButton) {
+    logoutButton.addEventListener("click", async () => {
+        try {
+            const response = await fetch("/logout", {
+                method: "POST"
+            });
+
+            if (response.ok) {
+                window.location.href = "/login-page";
+            } else {
+                alert("Logout failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Logout error:", error);
+            alert("Could not connect to the server.");
+        }
+    });
+}
+
+
+// ---------------- LOAD EMPLOYEE REQUESTS ----------------
+
 async function loadRequests() {
+    if (!requestList) return;
+
     try {
-        const response = await fetch("/requests");
+        const response = await fetch("/my-requests");
+
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = "/login-page";
+            return;
+        }
 
         if (!response.ok) {
-            throw new Error("Could not load leave requests.");
+            throw new Error("Could not load your leave requests.");
         }
 
         const requests = await response.json();
 
+        const pendingCount = document.getElementById("pendingCount");
+
+        if (pendingCount) {
+            pendingCount.textContent = requests.filter(
+                request => request.Status === "PENDING"
+            ).length;
+        }
+
         requestList.innerHTML = "";
 
         if (requests.length === 0) {
-            requestList.innerHTML =
-                '<p class="empty-state">No leave requests yet.</p>';
+            requestList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">▤</div>
+                    <h3>No requests yet</h3>
+                    <p>Your submitted leave requests will appear here.</p>
+                </div>`;
             return;
         }
 
-        requests.forEach((request) => {
+        requests.forEach(request => {
             const item = document.createElement("div");
             item.className = "request-item";
 
-           const title = document.createElement("h3");
-           title.textContent = request.LeaveType;
+            const title = document.createElement("h3");
+            title.textContent = request.LeaveType;
 
-           const employee = document.createElement("p");
-           employee.textContent = `Employee ID: ${request.EmployeeID}`;
+            const dates = document.createElement("p");
+            dates.textContent =
+                `Dates: ${request.StartDate} to ${request.EndDate}`;
 
-           const dates = document.createElement("p");
-           dates.textContent = `Dates: ${request.StartDate} to ${request.EndDate}`;
+            const duration = document.createElement("p");
+            duration.textContent =
+                `Duration: ${request.Duration} day(s)`;
 
-           const duration = document.createElement("p");
-           duration.textContent =  `Duration: ${request.Duration} day(s)`;
+            const reason = document.createElement("p");
+            reason.textContent = `Reason: ${request.Reason}`;
 
-           const reason = document.createElement("p");
-           reason.textContent = `Reason: ${request.Reason}`;
+            const status = document.createElement("span");
+            status.className = "status";
+            status.textContent = request.Status;
+            status.classList.add(request.Status.toLowerCase());
 
-           const status = document.createElement("span");
-           status.className = "status";
-           status.textContent = request.Status;
-
-           item.append(
-           title,
-           employee,
-           dates,
-           duration,
-           reason,
-           status
-);
-
-requestList.appendChild(item);
+            item.append(title, dates, duration, reason, status);
+            requestList.appendChild(item);
         });
+
     } catch (error) {
-        console.error("Error loading requests:", error);
+        console.error("Error loading employee requests:", error);
     }
 }
 
-loadRequests();
 
-//fetch("/requests") asks Flask for the saved requests.
-//await response.json() waits for the response and converts it into JavaScript data.
-//requests.forEach(...) processes each saved request.
-//The code creates a card showing its leave type, dates, reason, and status.
-//loadRequests() at the end runs the function when the page loads.
+// ---------------- LOAD ADMIN REQUESTS ----------------
+
+async function loadAdminRequests() {
+    if (!adminRequestList) return;
+
+    try {
+        const response = await fetch("/requests");
+
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = "/login-page";
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error("Could not load admin requests.");
+        }
+
+        const requests = await response.json();
+
+        const pendingRequests = requests.filter(
+            request => request.Status === "PENDING"
+        );
+
+        const adminPendingCount =
+            document.getElementById("adminPendingCount");
+
+        if (adminPendingCount) {
+            adminPendingCount.textContent = pendingRequests.length;
+        }
+
+        adminRequestList.innerHTML = "";
+
+        if (pendingRequests.length === 0) {
+            adminRequestList.innerHTML =
+                '<p class="empty-state">No pending requests.</p>';
+            return;
+        }
+
+        pendingRequests.forEach(request => {
+            const item = document.createElement("div");
+            item.className = "request-item";
+
+            const title = document.createElement("h3");
+            title.textContent = request.LeaveType;
+
+            const employee = document.createElement("p");
+            employee.textContent =
+                `Employee ID: ${request.EmployeeID}`;
+
+            const dates = document.createElement("p");
+            dates.textContent =
+                `Dates: ${request.StartDate} to ${request.EndDate}`;
+
+            const duration = document.createElement("p");
+            duration.textContent =
+                `Duration: ${request.Duration} day(s)`;
+
+            const reason = document.createElement("p");
+            reason.textContent = `Reason: ${request.Reason}`;
+
+            const status = document.createElement("span");
+            status.className = "status pending";
+            status.textContent = request.Status;
+
+            const approveButton = document.createElement("button");
+            approveButton.textContent = "Approve";
+            approveButton.className = "primary-button";
+
+            const rejectButton = document.createElement("button");
+            rejectButton.textContent = "Reject";
+            rejectButton.className = "reject-button";
+
+            approveButton.addEventListener("click", () => {
+                updateRequestStatus(request.RequestID, "APPROVED");
+            });
+
+            rejectButton.addEventListener("click", () => {
+                updateRequestStatus(request.RequestID, "REJECTED");
+            });
+
+            const actions = document.createElement("div");
+            actions.className = "admin-actions";
+            actions.append(approveButton, rejectButton);
+
+            item.append(
+                title,
+                employee,
+                dates,
+                duration,
+                reason,
+                status,
+                actions
+            );
+
+            adminRequestList.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error("Error loading admin requests:", error);
+    }
+}
+
+
+// ---------------- APPROVE OR REJECT ----------------
+
+async function updateRequestStatus(requestId, status) {
+    try {
+        const response = await fetch("/update-status", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                requestId,
+                status
+            })
+        });
+
+        const message = await response.text();
+
+        if (response.status === 401 || response.status === 403) {
+            alert("You are not authorized to perform this action.");
+            window.location.href = "/login-page";
+            return;
+        }
+
+        if (!response.ok) {
+            alert(message);
+            return;
+        }
+
+        alert(message);
+
+        await loadAdminRequests();
+
+    } catch (error) {
+        console.error("Error updating request:", error);
+        alert("Could not connect to the Flask server.");
+    }
+}
+
+
+// ---------------- LEAVE DURATION PREVIEW ----------------
 
 function updateDuration() {
+    if (!startInput || !endInput || !durationPreview) return;
+
     const start = startInput.value;
     const end = endInput.value;
 
@@ -80,14 +259,10 @@ function updateDuration() {
         return;
     }
 
-    // Split date components instead of relying on UTC parsing.
-    const [sy, sm, sd] = start.split("-").map(Number); //map conerts the string yr,m,d to num
+    const [sy, sm, sd] = start.split("-").map(Number);
     const [ey, em, ed] = end.split("-").map(Number);
 
-    const startDay = Date.UTC(sy, sm - 1, sd); //Date.UTC() converts the date components 
-                                               //into a numerical timestamp.
-//We want to subtract two dates to find the number of days between them for better user
-//experience.
+    const startDay = Date.UTC(sy, sm - 1, sd);
     const endDay = Date.UTC(ey, em - 1, ed);
 
     if (endDay < startDay) {
@@ -104,75 +279,100 @@ function updateDuration() {
         `Your requested leave: ${days} day${days === 1 ? "" : "s"}.`;
 }
 
-startInput.addEventListener("change", updateDuration);
-endInput.addEventListener("change", updateDuration);
+if (startInput && endInput && durationPreview) {
+    startInput.addEventListener("change", updateDuration);
+    endInput.addEventListener("change", updateDuration);
+}
 
-form.addEventListener("submit", async(event) => {
-    event.preventDefault();
 
-    const employeeId = document.getElementById("employeeId").value.trim();
-    const leaveType = document.getElementById("leaveType").value;
-    const startDate = startInput.value;
-    const endDate = endInput.value;
-    const reason = document.getElementById("reason").value.trim();
+// ---------------- SUBMIT LEAVE REQUEST ----------------
 
-    if (!employeeId || !startDate || !endDate || !reason) {
-        alert("Please complete all fields.");
-        return;
-    }
+if (form) {
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
 
-    if (endDate < startDate) {
-        alert("End date cannot be before start date.");
-        return;
-    }
+        const leaveType =
+            document.getElementById("leaveType").value;
+        const startDate = startInput.value;
+        const endDate = endInput.value;
+        const reason =
+            document.getElementById("reason").value.trim();
 
-    if (reason.includes(",")) {
-        alert("Please do not use commas in the reason.");
-        return;
-    }
-
-       try {
-        const response = await fetch("/apply", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: new URLSearchParams({
-                employeeId: employeeId,
-                leaveType: leaveType,
-                startDate: startDate,
-                endDate: endDate,
-                reason: reason
-            })
-        });
-
-        const message = await response.text();
-
-        if (!response.ok) {
-            alert(message);
+        if (!leaveType || !startDate || !endDate || !reason) {
+            alert("Please complete all fields.");
             return;
         }
 
-        alert("Leave request submitted successfully!\n\n" + message);
+        if (endDate < startDate) {
+            alert("End date cannot be before start date.");
+            return;
+        }
 
-        form.reset();
-        durationPreview.textContent =
-            "Select your dates to calculate duration.";
+        if (reason.includes(",")) {
+            alert("Please do not use commas in the reason.");
+            return;
+        }
 
-        await loadRequests();
+        try {
+            const response = await fetch("/apply", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    leaveType,
+                    startDate,
+                    endDate,
+                    reason
+                })
+            });
 
-    } catch (error) {
-        alert("Could not connect to the Flask server. Make sure it is running.");
-        console.error(error);
-    }
-});
+            const message = await response.text();
 
-document.querySelectorAll(".nav-link").forEach((link) => {
+            if (response.status === 401 || response.status === 403) {
+                alert("Please log in as an employee to apply for leave.");
+                window.location.href = "/login-page";
+                return;
+            }
+
+            if (!response.ok) {
+                alert(message);
+                return;
+            }
+
+            alert("Leave request submitted successfully!\n\n" + message);
+
+            form.reset();
+
+            if (durationPreview) {
+                durationPreview.textContent =
+                    "Select your dates to calculate duration.";
+            }
+
+            await loadRequests();
+
+        } catch (error) {
+            console.error("Submission error:", error);
+            alert("Could not connect to the Flask server.");
+        }
+    });
+}
+
+
+// ---------------- NAVIGATION ----------------
+
+document.querySelectorAll(".nav-link").forEach(link => {
     link.addEventListener("click", () => {
-        document.querySelectorAll(".nav-link").forEach((item) => {
+        document.querySelectorAll(".nav-link").forEach(item => {
             item.classList.remove("active");
         });
 
         link.classList.add("active");
     });
 });
+
+
+// ---------------- INITIALIZE ----------------
+
+loadRequests();
+loadAdminRequests();

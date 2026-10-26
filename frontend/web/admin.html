@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeaveFlow | Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">L</div>
+                <div>
+                    <h2>LeaveFlow</h2>
+                    <p>People management</p>
+                </div>
+            </div>
+
+            <p class="nav-heading">WORKSPACE</p>
+
+            <nav>
+                <a href="#" class="nav-link active">▦ &nbsp; Dashboard</a>
+                <a href="#pendingRequests" class="nav-link">
+                    ▤ &nbsp; Leave requests
+                </a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="avatar">A</div>
+                <div>
+                    <strong>Administrator</strong>
+                    <p>Admin portal</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main">
+
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">ADMIN WORKSPACE</p>
+                    <h1>Admin dashboard</h1>
+                </div>
+
+                <button type="button"
+                        class="primary-button"
+                        id="logoutButton">
+                    Logout
+                </button>
+            </header>
+
+            <section class="welcome">
+                <div>
+                    <p class="eyebrow light">LEAVEFLOW ADMINISTRATION</p>
+                    <h2>Manage leave requests</h2>
+                    <p>
+                        Review employee requests and approve or reject
+                        pending applications.
+                    </p>
+                </div>
+                <div class="welcome-symbol">✓</div>
+            </section>
+
+            <section class="stats">
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span>Pending requests</span>
+                        <span class="stat-icon blue">◷</span>
+                    </div>
+                    <h2 id="adminPendingCount">0</h2>
+                    <p>Awaiting a decision</p>
+                </article>
+            </section>
+
+            <section class="panel" id="pendingRequests">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">REVIEW APPLICATIONS</p>
+                        <h2>Pending leave requests</h2>
+                    </div>
+                    <span class="heading-icon">▤</span>
+                </div>
+
+                <div id="adminRequestList" class="request-list">
+                    <div class="empty-state">
+                        <h3>Loading requests...</h3>
+                        <p>Please wait while requests are retrieved.</p>
+                    </div>
+                </div>
+            </section>
+
+            <footer>
+                LeaveFlow · Employee Leave Management System
+            </footer>
+
+        </main>
+    </div>
+
+    <script>
+        document.getElementById("logoutButton").addEventListener("click", async () => {
+            try {
+                const response = await fetch("/logout", {
+                    method: "POST"
+                });
+
+                if (response.ok) {
+                    window.location.href = "/login-page";
+                } else {
+                    alert("Logout failed. Please try again.");
+                }
+            } catch (error) {
+                alert("Could not connect to the server.");
+            }
+        });
+    </script>
+
+    <script src="script.js"></script>
+</body>
+</html>
