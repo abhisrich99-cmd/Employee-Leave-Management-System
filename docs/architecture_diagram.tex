@@ -1,211 +1,140 @@
+\documentclass[a4paper,12pt]{article}
 
-\documentclass[border=12pt,tikz]{standalone}
-
+\usepackage[margin=1.5cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\usetikzlibrary{arrows.meta,calc,fit}
+
+\pagestyle{empty}
 
 \begin{document}
 
+\begin{center}
+    {\Large\bfseries System Architecture}\\[4pt]
+    {\large Leave Management System}
+\end{center}
+
+\vspace{0.3cm}
+
+\begin{center}
 \begin{tikzpicture}[
-    font=\small,
-    component/.style={
-        draw,
-        rounded corners=4pt,
-        align=center,
-        minimum width=5.2cm,
-        minimum height=1.2cm,
-        text width=5cm,
-        inner sep=8pt
-    },
-    data/.style={
-        draw,
-        rounded corners=3pt,
-        align=center,
-        text width=4cm,
-        minimum height=1cm,
-        inner sep=7pt,
-        fill=green!7
-    },
-    flow/.style={
-        -{Latex[length=2.5mm]},
-        thick
-    },
-    flowlabel/.style={
-        font=\scriptsize,
-        fill=white,
-        inner sep=2pt,
-        align=center
-    }
+    layer/.style={draw, rounded corners=3pt, align=center,
+                  inner sep=8pt, font=\small},
+    datanode/.style={layer, font=\footnotesize, fill=green!8,
+                     text width=3.4cm, minimum height=2.8cm},
+    lbl/.style={font=\scriptsize, align=left, inner sep=1pt},
+    flow/.style={thick, -{Triangle[length=2.5mm,width=2mm]}},
+    flow2/.style={thick, {Triangle[length=2.5mm,width=2mm]}-{Triangle[length=2.5mm,width=2mm]}},
+    container/.style={dashed, rounded corners=4pt, inner sep=0.35cm}
 ]
 
-% ==================================================
+% --------------------------------------------------
 % PRESENTATION LAYER
-% ==================================================
-
-\node[
-    component,
-    minimum width=12cm,
-    text width=11.5cm,
-    fill=blue!8
-] (browser) at (0,0) {
-    \textbf{\Large PRESENTATION LAYER}\\[5pt]
+% --------------------------------------------------
+\node[layer, anchor=north, fill=blue!8, text width=11.4cm]
+    (browser) at (0,0) {
+    \textbf{\large PRESENTATION LAYER}\\[2pt]
     \textbf{Web Browser}\\
-    HTML, CSS and JavaScript\\[3pt]
+    HTML, CSS and JavaScript\\[4pt]
     Login Page \quad Employee Dashboard \quad Admin Dashboard\\
     Leave Application Form \quad Leave Status \quad Balance Display
 };
 
-% ==================================================
+% --------------------------------------------------
 % APPLICATION LAYER
-% ==================================================
-
-\node[
-    component,
-    minimum height=2.7cm,
-    fill=orange!12
-] (flask) at (-4.2,-3.5) {
+% --------------------------------------------------
+\node[layer, anchor=north, fill=orange!12, text width=6.2cm, minimum height=5cm]
+    (flask) at ($(browser.south)+(-4.5,-2.2)$) {
     \textbf{\large FLASK APPLICATION}\\
-    \textbf{Python}\\[5pt]
+    \textbf{Python}\\[4pt]
     Authentication and login\\
     Role-based access control\\
     Employee and admin routes\\
-    Request handling and status updates\\
+    Request handling\\and status updates\\
     Leave-balance persistence
 };
 
-\node[
-    component,
-    minimum height=2.7cm,
-    fill=yellow!18
-] (cpp) at (4.2,-3.5) {
+\node[layer, anchor=north, fill=yellow!15, text width=6.2cm, minimum height=5cm]
+    (cpp) at ($(browser.south)+(4.5,-2.2)$) {
     \textbf{\large C++ BACKEND}\\
-    Leave-policy processing\\[5pt]
+    Leave-policy processing\\[4pt]
     \texttt{Leave} base class\\
-    CasualLeave, SickLeave, EarnedLeave\\
+    CasualLeave, SickLeave,\\EarnedLeave\\
     Polymorphism and virtual methods\\
     Request-duration validation\\
     Maximum-days validation
 };
 
-% Browser to Flask
-\draw[flow]
-    (browser.south)
-    -- ++(0,-0.45)
-    -| node[pos=0.25,flowlabel] {HTTP requests and responses}
-    (flask.north);
+% --------------------------------------------------
+% DATA AND RUNTIME ROW
+% --------------------------------------------------
+\coordinate (bus) at ($(browser.south |- flask.south)+(0,-1.2)$);
+\coordinate (row) at ($(browser.south |- flask.south)+(0,-3.0)$);
 
-% Flask to C++
-\draw[flow]
-    (flask.east)
-    -- node[above,flowlabel] {Subprocess call\\and result}
-    (cpp.west);
-
-% ==================================================
-% DATA LAYER
-% ==================================================
-
-\node[
-    data,
-    fill=green!8
-] (users) at (-8.0,-7.8) {
-    \textbf{USER ACCOUNTS}\\[3pt]
-    \texttt{users.json}\\
+\node[datanode, anchor=north] (users) at ($(row)+(-6.6,0)$) {
+    \textbf{USER ACCOUNTS}\\[2pt]
+    {\scriptsize\texttt{users.json}}\\
     Names, passwords and roles
 };
 
-\node[
-    data,
-    fill=green!8
-] (balances) at (-2.7,-7.8) {
-    \textbf{LEAVE BALANCES}\\[3pt]
-    \texttt{leave\_balances.json}\\
+\node[datanode, anchor=north] (balances) at ($(row)+(-2.2,0)$) {
+    \textbf{LEAVE BALANCES}\\[2pt]
+    {\scriptsize\texttt{leave\_balances.json}}\\
     Casual, Sick and Earned balances
 };
 
-\node[
-    data,
-    fill=green!8
-] (requests) at (2.6,-7.8) {
-    \textbf{LEAVE REQUESTS}\\[3pt]
-    \texttt{leave\_requests.csv}\\
+\node[datanode, anchor=north] (requests) at ($(row)+(2.2,0)$) {
+    \textbf{LEAVE REQUESTS}\\[2pt]
+    {\scriptsize\texttt{leave\_requests.csv}}\\
     Dates, duration, reason and status
 };
 
-\node[
-    data,
-    fill=gray!8
-] (runtime) at (7.9,-7.8) {
-    \textbf{RUNTIME COMPONENT}\\[3pt]
-    \texttt{leave\_backend.exe}\\
+\node[datanode, anchor=north, fill=gray!12] (exe) at ($(row)+(6.6,0)$) {
+    \textbf{RUNTIME COMPONENT}\\[2pt]
+    {\scriptsize\texttt{leave\_backend.exe}}\\
     Executed by Flask when required
 };
 
-% Flask to user accounts
-\draw[flow]
-    (flask.south west)
-    -- ++(-0.2,-0.6)
-    -| node[pos=0.25,flowlabel] {Read account data}
-    (users.north);
+% --------------------------------------------------
+% DASHED CONTAINERS (outline only, drawn after the boxes)
+% --------------------------------------------------
+\node[container, draw=orange!70!black, fit=(flask)(cpp)] (appbox) {};
+\node[container, draw=green!50!black, fit=(users)(balances)(requests)(exe)] (databox) {};
 
-% Flask to balances
-\draw[flow]
-    (flask.south)
-    -- ++(0,-0.8)
-    -| node[pos=0.25,flowlabel] {Read and update balances}
-    (balances.north);
+\node[anchor=south east, font=\scriptsize\bfseries, text=orange!60!black]
+    at (appbox.north east) {APPLICATION LAYER};
+\node[anchor=north, font=\scriptsize\bfseries, text=green!40!black]
+    at (databox.south) {LOCAL DATA AND RUNTIME FILES};
 
-% Flask to requests
-\draw[flow]
-    (flask.south east)
-    -- ++(0.2,-0.6)
-    -| node[pos=0.25,flowlabel] {Read and update requests}
-    (requests.north);
+% --------------------------------------------------
+% CONNECTORS
+% --------------------------------------------------
+% Browser <-> Flask
+\draw[flow2] (browser.south -| flask.north) -- (flask.north)
+    node[midway, right=2pt, lbl, text width=3.2cm] {HTTP requests and responses};
 
-% C++ executable/runtime relationship
-\draw[flow]
-    (cpp.south east)
-    -- ++(0.3,-0.5)
-    -| node[pos=0.25,flowlabel] {Invokes executable}
-    (runtime.north);
+% Flask <-> C++ backend
+\draw[flow2] (flask.east) -- (cpp.west)
+    node[midway, above=2pt, lbl, align=center, text width=2.1cm]
+    {Subprocess call and result};
 
-% ==================================================
-% LAYER BOUNDARIES
-% ==================================================
+% Flask -> data files (shared bus, vertical drops)
+\draw[thick] (flask.south) -- (flask.south |- bus);
+\draw[thick] (users.north |- bus) -- (requests.north |- bus);
 
-\begin{scope}[on background layer]
-    \node[
-        draw=blue!55,
-        dashed,
-        rounded corners=7pt,
-        inner sep=12pt,
-        fit=(browser),
-        label={[font=\bfseries\small,text=blue!55!black]
-            above: PRESENTATION LAYER}
-    ] {};
+\draw[flow] (users.north |- bus) -- (users.north)
+    node[midway, right=2pt, lbl, text width=2.5cm] {Read account data};
+\draw[flow] (balances.north |- bus) -- (balances.north)
+    node[midway, right=2pt, lbl, text width=2.5cm] {Read and update balances};
+\draw[flow] (requests.north |- bus) -- (requests.north)
+    node[midway, right=2pt, lbl, text width=2.5cm] {Read and update requests};
 
-    \node[
-        draw=orange!65,
-        dashed,
-        rounded corners=7pt,
-        inner sep=12pt,
-        fit=(flask)(cpp),
-        label={[font=\bfseries\small,text=orange!65!black]
-            above: APPLICATION AND PROCESSING LAYER}
-    ] {};
-
-    \node[
-        draw=green!50!black,
-        dashed,
-        rounded corners=7pt,
-        inner sep=12pt,
-        fit=(users)(balances)(requests)(runtime),
-        label={[font=\bfseries\small,text=green!40!black]
-            below: LOCAL DATA AND RUNTIME FILES}
-    ] {};
-\end{scope}
+% C++ backend -> compiled executable
+\draw[flow, dashed] (exe.north |- cpp.south) -- (exe.north)
+    node[midway, right=2pt, lbl] {Compiled to};
 
 \end{tikzpicture}
+\end{center}
 
 \end{document}
