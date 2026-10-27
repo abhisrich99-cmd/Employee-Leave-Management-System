@@ -64,16 +64,86 @@
                 <div class="welcome-symbol">✓</div>
             </section>
 
-            <section class="stats">
-                <article class="stat-card">
-                    <div class="stat-top">
-                        <span>Pending requests</span>
-                        <span class="stat-icon blue">◷</span>
-                    </div>
-                    <h2 id="adminPendingCount">0</h2>
-                    <p>Awaiting a decision</p>
-                </article>
-            </section>
+            
+<section class="stats">
+    <article class="stat-card">
+        <div class="stat-top">
+            <span>Total requests</span>
+            <span class="stat-icon purple">▤</span>
+        </div>
+        <h2 id="adminTotalCount">0</h2>
+        <p>All applications</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-top">
+            <span>Pending requests</span>
+            <span class="stat-icon blue">◷</span>
+        </div>
+        <h2 id="adminPendingCount">0</h2>
+        <p>Awaiting a decision</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-top">
+            <span>Approved</span>
+            <span class="stat-icon green">✓</span>
+        </div>
+        <h2 id="adminApprovedCount">0</h2>
+        <p>Approved applications</p>
+    </article>
+
+    <article class="stat-card">
+        <div class="stat-top">
+            <span>Rejected</span>
+            <span class="stat-icon orange">×</span>
+        </div>
+        <h2 id="adminRejectedCount">0</h2>
+        <p>Rejected applications</p>
+    </article>
+</section>
+
+
+<section class="panel">
+    <div class="panel-heading">
+        <div>
+            <p class="eyebrow">EMPLOYEE MANAGEMENT</p>
+            <h2>Add a new employee</h2>
+        </div>
+    </div>
+
+    <form id="addEmployeeForm">
+        <div class="form-group">
+            <label for="newEmployeeName">Employee name</label>
+            <input
+                type="text"
+                id="newEmployeeName"
+                name="name"
+                placeholder="Enter employee name"
+                maxlength="100"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="newEmployeePassword">Temporary password</label>
+            <input
+                type="password"
+                id="newEmployeePassword"
+                name="password"
+                placeholder="Create a password"
+                maxlength="128"
+                required
+            >
+        </div>
+
+        <button type="submit" class="primary-button">
+            Add employee
+        </button>
+
+        <p id="addEmployeeMessage" role="status"></p>
+    </form>
+</section>
 
             <section class="panel" id="pendingRequests">
                 <div class="panel-heading">
@@ -83,6 +153,18 @@
                     </div>
                     <span class="heading-icon">▤</span>
                 </div>
+
+                
+<div class="filter-bar">
+    <label for="statusFilter">Filter by status:</label>
+    <select id="statusFilter">
+        <option value="ALL">All requests</option>
+        <option value="PENDING" selected>Pending</option>
+        <option value="APPROVED">Approved</option>
+        <option value="REJECTED">Rejected</option>
+    </select>
+</div>
+
 
                 <div id="adminRequestList" class="request-list">
                     <div class="empty-state">

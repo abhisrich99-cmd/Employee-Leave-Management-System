@@ -122,9 +122,36 @@ async function loadAdminRequests() {
 
         const requests = await response.json();
 
-        const pendingRequests = requests.filter(
-            request => request.Status === "PENDING"
-        );
+        
+const statusFilter = document.getElementById("statusFilter");
+const selectedStatus = statusFilter ? statusFilter.value : "PENDING";
+
+const filteredRequests = selectedStatus === "ALL"
+    ? requests
+    : requests.filter(request => request.Status === selectedStatus);
+
+
+        
+const adminTotalCount = document.getElementById("adminTotalCount");
+const adminApprovedCount = document.getElementById("adminApprovedCount");
+const adminRejectedCount = document.getElementById("adminRejectedCount");
+
+if (adminTotalCount) {
+    adminTotalCount.textContent = requests.length;
+}
+
+if (adminApprovedCount) {
+    adminApprovedCount.textContent = requests.filter(
+        request => request.Status === "APPROVED"
+    ).length;
+}
+
+if (adminRejectedCount) {
+    adminRejectedCount.textContent = requests.filter(
+        request => request.Status === "REJECTED"
+    ).length;
+}
+
 
         const adminPendingCount =
             document.getElementById("adminPendingCount");
@@ -135,13 +162,15 @@ async function loadAdminRequests() {
 
         adminRequestList.innerHTML = "";
 
-        if (pendingRequests.length === 0) {
-            adminRequestList.innerHTML =
-                '<p class="empty-state">No pending requests.</p>';
-            return;
-        }
+        
+if (filteredRequests.length === 0) {
+    adminRequestList.innerHTML =
+        '<p class="empty-state">No requests found for this status.</p>';
+    return;
+}
 
-        pendingRequests.forEach(request => {
+filteredRequests.forEach(request => {
+
             const item = document.createElement("div");
             item.className = "request-item";
 
@@ -415,3 +444,49 @@ async function loadBalances() {
 loadRequests();
 loadAdminRequests();
 loadBalances();
+
+const statusFilter = document.getElementById("statusFilter");
+
+if (statusFilter) {
+    statusFilter.addEventListener("change", loadAdminRequests);
+}
+
+
+const addEmployeeForm = document.getElementById("addEmployeeForm");
+
+if (addEmployeeForm) {
+    addEmployeeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const message = document.getElementById("addEmployeeMessage");
+        const name = document.getElementById("newEmployeeName").value.trim();
+        const password = document.getElementById("newEmployeePassword").value;
+
+        message.textContent = "Creating employee...";
+
+        try {
+            const response = await fetch("/add-employee", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ name, password })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                message.textContent = result.message || "Could not create employee.";
+                return;
+            }
+
+            message.textContent =
+                `Employee created! ID: ${result.employeeId}`;
+
+            addEmployeeForm.reset();
+
+        } catch (error) {
+            message.textContent = "Could not connect to the server.";
+        }
+    });
+}
