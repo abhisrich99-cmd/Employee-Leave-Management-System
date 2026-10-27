@@ -1,0 +1,211 @@
+
+\documentclass[border=12pt,tikz]{standalone}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    font=\small,
+    component/.style={
+        draw,
+        rounded corners=4pt,
+        align=center,
+        minimum width=5.2cm,
+        minimum height=1.2cm,
+        text width=5cm,
+        inner sep=8pt
+    },
+    data/.style={
+        draw,
+        rounded corners=3pt,
+        align=center,
+        text width=4cm,
+        minimum height=1cm,
+        inner sep=7pt,
+        fill=green!7
+    },
+    flow/.style={
+        -{Latex[length=2.5mm]},
+        thick
+    },
+    flowlabel/.style={
+        font=\scriptsize,
+        fill=white,
+        inner sep=2pt,
+        align=center
+    }
+]
+
+% ==================================================
+% PRESENTATION LAYER
+% ==================================================
+
+\node[
+    component,
+    minimum width=12cm,
+    text width=11.5cm,
+    fill=blue!8
+] (browser) at (0,0) {
+    \textbf{\Large PRESENTATION LAYER}\\[5pt]
+    \textbf{Web Browser}\\
+    HTML, CSS and JavaScript\\[3pt]
+    Login Page \quad Employee Dashboard \quad Admin Dashboard\\
+    Leave Application Form \quad Leave Status \quad Balance Display
+};
+
+% ==================================================
+% APPLICATION LAYER
+% ==================================================
+
+\node[
+    component,
+    minimum height=2.7cm,
+    fill=orange!12
+] (flask) at (-4.2,-3.5) {
+    \textbf{\large FLASK APPLICATION}\\
+    \textbf{Python}\\[5pt]
+    Authentication and login\\
+    Role-based access control\\
+    Employee and admin routes\\
+    Request handling and status updates\\
+    Leave-balance persistence
+};
+
+\node[
+    component,
+    minimum height=2.7cm,
+    fill=yellow!18
+] (cpp) at (4.2,-3.5) {
+    \textbf{\large C++ BACKEND}\\
+    Leave-policy processing\\[5pt]
+    \texttt{Leave} base class\\
+    CasualLeave, SickLeave, EarnedLeave\\
+    Polymorphism and virtual methods\\
+    Request-duration validation\\
+    Maximum-days validation
+};
+
+% Browser to Flask
+\draw[flow]
+    (browser.south)
+    -- ++(0,-0.45)
+    -| node[pos=0.25,flowlabel] {HTTP requests and responses}
+    (flask.north);
+
+% Flask to C++
+\draw[flow]
+    (flask.east)
+    -- node[above,flowlabel] {Subprocess call\\and result}
+    (cpp.west);
+
+% ==================================================
+% DATA LAYER
+% ==================================================
+
+\node[
+    data,
+    fill=green!8
+] (users) at (-8.0,-7.8) {
+    \textbf{USER ACCOUNTS}\\[3pt]
+    \texttt{users.json}\\
+    Names, passwords and roles
+};
+
+\node[
+    data,
+    fill=green!8
+] (balances) at (-2.7,-7.8) {
+    \textbf{LEAVE BALANCES}\\[3pt]
+    \texttt{leave\_balances.json}\\
+    Casual, Sick and Earned balances
+};
+
+\node[
+    data,
+    fill=green!8
+] (requests) at (2.6,-7.8) {
+    \textbf{LEAVE REQUESTS}\\[3pt]
+    \texttt{leave\_requests.csv}\\
+    Dates, duration, reason and status
+};
+
+\node[
+    data,
+    fill=gray!8
+] (runtime) at (7.9,-7.8) {
+    \textbf{RUNTIME COMPONENT}\\[3pt]
+    \texttt{leave\_backend.exe}\\
+    Executed by Flask when required
+};
+
+% Flask to user accounts
+\draw[flow]
+    (flask.south west)
+    -- ++(-0.2,-0.6)
+    -| node[pos=0.25,flowlabel] {Read account data}
+    (users.north);
+
+% Flask to balances
+\draw[flow]
+    (flask.south)
+    -- ++(0,-0.8)
+    -| node[pos=0.25,flowlabel] {Read and update balances}
+    (balances.north);
+
+% Flask to requests
+\draw[flow]
+    (flask.south east)
+    -- ++(0.2,-0.6)
+    -| node[pos=0.25,flowlabel] {Read and update requests}
+    (requests.north);
+
+% C++ executable/runtime relationship
+\draw[flow]
+    (cpp.south east)
+    -- ++(0.3,-0.5)
+    -| node[pos=0.25,flowlabel] {Invokes executable}
+    (runtime.north);
+
+% ==================================================
+% LAYER BOUNDARIES
+% ==================================================
+
+\begin{scope}[on background layer]
+    \node[
+        draw=blue!55,
+        dashed,
+        rounded corners=7pt,
+        inner sep=12pt,
+        fit=(browser),
+        label={[font=\bfseries\small,text=blue!55!black]
+            above: PRESENTATION LAYER}
+    ] {};
+
+    \node[
+        draw=orange!65,
+        dashed,
+        rounded corners=7pt,
+        inner sep=12pt,
+        fit=(flask)(cpp),
+        label={[font=\bfseries\small,text=orange!65!black]
+            above: APPLICATION AND PROCESSING LAYER}
+    ] {};
+
+    \node[
+        draw=green!50!black,
+        dashed,
+        rounded corners=7pt,
+        inner sep=12pt,
+        fit=(users)(balances)(requests)(runtime),
+        label={[font=\bfseries\small,text=green!40!black]
+            below: LOCAL DATA AND RUNTIME FILES}
+    ] {};
+\end{scope}
+
+\end{tikzpicture}
+
+\end{document}

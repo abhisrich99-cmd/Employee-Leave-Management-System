@@ -1,0 +1,102 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[margin=1.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+    {\Large\bfseries UML Class Diagram}\\[4pt]
+    {\large User Inheritance Hierarchy}
+\end{center}
+
+\vspace{0.5cm}
+
+\begin{center}
+\begin{tikzpicture}[
+    classbox/.style={
+        draw,
+        rounded corners=3pt,
+        align=left,
+        text width=6.6cm,
+        inner sep=8pt,
+        font=\small
+    },
+    abstractbox/.style={
+        classbox,
+        fill=gray!10
+    },
+    inherit/.style={
+        -{Triangle[open,length=3mm,width=3mm]},
+        thick
+    }
+]
+
+% --------------------------------------------------
+% ABSTRACT BASE CLASS (top-anchored at origin)
+% --------------------------------------------------
+\node[abstractbox, anchor=north] (user) at (0,0) {
+    \textbf{\textit{User (Abstract)}}\\
+    \rule{\linewidth}{0.4pt}\\
+    \texttt{\# userId: string}\\
+    \texttt{\# name: string}\\
+    \texttt{\# password: string}\\
+    \rule{\linewidth}{0.4pt}\\
+    \texttt{+ displayProfile(): void = 0}\\
+    \texttt{+ getUserId(): string}\\
+    \texttt{+ getName(): string}\\
+    \texttt{+ checkPassword(password): bool}
+};
+
+% --------------------------------------------------
+% DERIVED CLASSES (placed relative to User's bottom edge)
+% --------------------------------------------------
+\node[classbox, anchor=north] (employee)
+    at ($(user.south)+(-4.2,-2.0)$) {
+    \textbf{Employee}\\
+    \rule{\linewidth}{0.4pt}\\
+    \texttt{- email: string}\\
+    \texttt{- phone: string}\\
+    \texttt{- department: string}\\
+    \rule{\linewidth}{0.4pt}\\
+    \texttt{+ displayProfile(): void}\\
+    \texttt{+ getEmail(): string}\\
+    \texttt{+ getPhone(): string}\\
+    \texttt{+ getDepartment(): string}\\
+    \texttt{+ getLeaveBalance(type): int}\\
+    \texttt{+ deductLeave(type, days): bool}\\
+    \texttt{+ displayLeaveBalance(): void}
+};
+
+\node[classbox, anchor=north] (admin)
+    at ($(user.south)+(4.2,-2.0)$) {
+    \textbf{Admin}\\
+    \rule{\linewidth}{0.4pt}\\
+    No additional attributes\\
+    \rule{\linewidth}{0.4pt}\\
+    \texttt{+ displayProfile(): void}
+};
+
+% --------------------------------------------------
+% INHERITANCE CONNECTORS
+% Junction sits in the gap between User and children.
+% --------------------------------------------------
+\coordinate (junction) at ($(user.south)+(0,-1.0)$);
+
+% Horizontal bus with vertical drops to each child (no arrowheads)
+\draw[thick] (employee.north) -- (employee.north |- junction)
+                              -- (admin.north |- junction)
+                              -- (admin.north);
+
+% Single hollow triangle pointing at the parent class
+\draw[inherit] (junction) -- (user.south);
+
+\end{tikzpicture}
+\end{center}
+
+\end{document}
