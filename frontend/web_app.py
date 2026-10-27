@@ -114,6 +114,94 @@ def logout():
     return redirect("/login-page")
 
 
+# ---------------- ADD EMPLOYEE (ADMIN ONLY) ----------------
+
+@app.route("/add-employee", methods=["POST"])
+@require_role("admin")
+def add_employee():
+    data = request.get_json(silent=True) or {}
+
+    name = data.get("name", "").strip()
+    password = data.get("password", "")
+
+    if not name or not isinstance(password, str) or not password.strip():
+        return jsonify({"message": "Name and password are required."}), 400
+
+    if len(name) > 100 or len(password) > 128:
+        return jsonify({"message": "Name or password is too long."}), 400
+
+    try:
+        with open(USERS_FILE, "r", encoding="utf-8") as file:
+            users = json.load(file)
+
+        with open(BALANCES_FILE, "r", encoding="utf-8") as file:
+            balances = json.load(file)
+
+        if not isinstance(users, dict) or not isinstance(balances, dict):
+            return jsonify({"message": "Invalid user or balance data."}), 500
+
+        # Find the next available employee ID.
+        employee_numbers = [
+            int(username[1:])
+            for username in users
+            if isinstance(username, str)
+            and len(username) > 1
+            and username.startswith("E")
+            and username[1:].isdigit()
+        ]
+
+        next_number = max(employee_numbers, default=100) + 1
+        employee_id = f"E{next_number}"
+
+        # Avoid overwriting an existing account.
+        while employee_id in users:
+            next_number += 1
+            employee_id = f"E{next_number}"
+
+        # Add the account and its initial leave balances.
+        users[employee_id] = {
+            "name": name,
+            "password": password,
+            "role": "employee"
+        }
+
+        balances[employee_id] = {
+            "Casual Leave": 12,
+            "Sick Leave": 10,
+            "Earned Leave": 15
+        }
+
+        users_temp = USERS_FILE.with_suffix(".tmp")
+        balances_temp = BALANCES_FILE.with_suffix(".tmp")
+
+        try:
+            with open(users_temp, "w", encoding="utf-8") as file:
+                json.dump(users, file, indent=4)
+                file.write("\n")
+
+            with open(balances_temp, "w", encoding="utf-8") as file:
+                json.dump(balances, file, indent=4)
+                file.write("\n")
+
+            # Save both files after writing the temporary files.
+            users_temp.replace(USERS_FILE)
+            balances_temp.replace(BALANCES_FILE)
+
+        finally:
+            for temp_file in (users_temp, balances_temp):
+                if temp_file.exists():
+                    temp_file.unlink()
+
+        return jsonify({
+            "message": "Employee created successfully.",
+            "employeeId": employee_id
+        }), 201
+
+    except (OSError, json.JSONDecodeError):
+        app.logger.exception("Could not create employee")
+        return jsonify({"message": "Could not save the employee."}), 500
+
+
 # ---------------- EMPLOYEE AND ADMIN PAGES ----------------
 
 @app.route("/employee")
