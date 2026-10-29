@@ -1,33 +1,80 @@
 \documentclass[12pt,a4paper,oneside]{book}
 
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{geometry}
-\usepackage{tikz}
-\usepackage{float}
-\usepackage{tabularx}
-\usetikzlibrary{arrows.meta}
 
-\geometry{margin=0.8in}
+
+\usepackage[utf8]{inputenc}
+
+\usepackage[T1]{fontenc}
+
+\usepackage{lmodern}
+
+\usepackage{graphicx}
+
+\usepackage{xcolor}
+
+\usepackage{geometry}
+
+\usepackage{tikz}
+
+\usepackage{float}
+
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{titlesec}
+\usepackage{caption}
+
+\usetikzlibrary{arrows.meta,shapes.geometric}
+
+
+
+\geometry{margin=1in}
+
+% Consistent report typography and numbered elements
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\renewcommand{\thesection}{\thechapter.\arabic{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+\renewcommand{\thefigure}{\thechapter.\arabic{figure}}
+\renewcommand{\thetable}{\thechapter.\arabic{table}}
+\captionsetup{font=small,labelfont=bf,justification=centering}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\Huge}{\chaptername\ \thechapter}{10pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.8em}{}
 
 \begin{document}
+
 \mainmatter
 
+
+
+% Group 27 numbering: Chapter 27, sections 27.1, 27.2, subsections 27.1.1, etc.
+\setcounter{chapter}{26}
 \chapter{Employee Leave Management System (LeaveFlow)}
+
+
 
 \section{System Architecture}
 
+
+
 LeaveFlow follows a layered architecture consisting of a web
+
 interface, a Flask application, a C++ processing component,
+
 and local data storage. Flask manages authentication, role-based
+
 access control, and leave records. It invokes the compiled C++
+
 backend for leave validation and processing.
 
+
+
 \begin{figure}[htbp]
+
 \centering
+
 \begin{tikzpicture}[
     x=1cm,y=1cm,
     main/.style={
@@ -55,7 +102,6 @@ backend for leave validation and processing.
         blue!60!black
     }
 ]
-
 % Presentation layer
 \node[main] (web) at (0,0) {
     \textbf{PRESENTATION LAYER}\\[4pt]
@@ -63,7 +109,6 @@ backend for leave validation and processing.
     Login, Employee Dashboard, Admin Dashboard\\
     Leave Application, Request Status, Leave Balances
 };
-
 % Flask layer
 \node[main] (flask) at (0,-3.0) {
     \textbf{APPLICATION LAYER -- FLASK (PYTHON)}\\[4pt]
@@ -71,7 +116,6 @@ backend for leave validation and processing.
     Employee and Administrator Routes\\
     Request Handling, Status Updates, Balance Management
 };
-
 % C++ processing layer
 \node[main] (cpp) at (0,-6.0) {
     \textbf{C++ PROCESSING LAYER}\\[4pt]
@@ -80,58 +124,91 @@ backend for leave validation and processing.
     Polymorphism, Duration and Maximum-Days Validation\\
     Invoked by Flask through a subprocess
 };
-
 % Data storage heading
 \node[font=\bfseries] at (0,-8.5) {
     LOCAL DATA STORAGE
 };
-
 % Data files
 \node[storage] (users) at (-4.0,-10) {
     \textbf{USER ACCOUNTS}\\[3pt]
     \texttt{users.json}\\
     Names, passwords, roles
 };
-
 \node[storage] (balances) at (0,-10) {
     \textbf{LEAVE BALANCES}\\[3pt]
     \texttt{leave\_balances.json}\\
     Casual, Sick, Earned
 };
-
 \node[storage] (requests) at (4.0,-10) {
     \textbf{LEAVE REQUESTS}\\[3pt]
     \texttt{leave\_requests.csv}\\
     Dates, duration, status
 };
-
 % Simple vertical arrows
 \draw[flow] (web.south) -- (flask.north);
 \draw[flow] (flask.south) -- (cpp.north);
-
 % Storage relationship description
 \node[font=\scriptsize,align=center] at (0,-11.4) {
     Flask reads and updates local JSON and CSV files.\\
     The C++ backend appends validated requests to the CSV file.
 };
-
 \end{tikzpicture}
 
+
+
 \caption{System architecture of the LeaveFlow application}
+
 \label{fig:system-architecture}
+
 \end{figure}
+
+
+
+\section{Technology Stack}
+
+LeaveFlow combines web technologies, Python, C++, and local file storage. Each technology is used for a specific responsibility in the application.
+
+\begin{table}[htbp]
+\centering
+\caption{Technology stack used in LeaveFlow}
+\label{tab:technology-stack}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{|p{3.1cm}|p{3.2cm}|X|}
+\hline
+\textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\ \hline
+Web frontend & HTML, CSS, JavaScript & Displays login pages, forms, dashboards, and interactive controls. \\ \hline
+Web application & Python and Flask & Handles routes, sessions, role checks, form submissions, and coordination between components. \\ \hline
+Processing backend & C++ & Implements leave-related classes and validates dates, duration, and applicable leave-type limits. \\ \hline
+Local storage & JSON and CSV files & Stores account information, leave balances, and leave-request records. \\ \hline
+Integration & Python \texttt{subprocess} & Allows Flask to run the compiled C++ executable and receive its output and exit status. \\ \hline
+\end{tabularx}
+\end{table}
+
+The technologies are connected so that the frontend collects user input, Flask coordinates the web workflow, C++ performs the required leave-processing operations, and the local files preserve the application data.
+
 
 \section{Use-Case Diagram}
 
+
+
 The use-case diagram represents the interactions between the two
+
 main actors, Employee and Administrator, and the LeaveFlow system.
+
 Employees can apply for leave, view their balances, and track their
+
 requests. Administrators can add employees, view and filter requests,
+
 and approve or reject pending applications.
 
+
+
 \begin{figure}[htbp]
+
 \centering
+
 \resizebox{0.95\textwidth}{!}{%
+
 \begin{tikzpicture}[
     actor/.style={
         draw,
@@ -152,63 +229,76 @@ and approve or reject pending applications.
     },
     link/.style={draw,thick}
 ]
-
 % System boundary
 \draw[thick] (0,0) rectangle (11,8);
 \node[font=\bfseries] at (5.5,7.7) {LeaveFlow System};
-
 % Actors
 \node[actor] (employee) at (-2,5.7) {Employee};
 \node[actor] (admin) at (13,5.7) {Administrator};
-
 % Employee use cases
 \node[usecase] (loginE) at (2,6.5) {Log In};
 \node[usecase] (balance) at (2,5.1) {View Leave Balance};
 \node[usecase] (apply) at (2,3.7) {Apply for Leave};
 \node[usecase] (myrequests) at (2,2.3) {View My Requests};
 \node[usecase] (logoutE) at (2,0.9) {Log Out};
-
 % Administrator use cases
 \node[usecase] (loginA) at (8,6.5) {Log In};
 \node[usecase] (addemp) at (8,5.1) {Add Employee};
 \node[usecase] (viewall) at (8,3.7) {View All Requests};
 \node[usecase] (filter) at (8,2.3) {Filter Requests};
 \node[usecase] (decision) at (8,0.9) {Approve / Reject Leave};
-
 % Employee links
 \draw[link] (employee.east) -- (loginE.west);
 \draw[link] (employee.east) -- (balance.west);
 \draw[link] (employee.east) -- (apply.west);
 \draw[link] (employee.east) -- (myrequests.west);
 \draw[link] (employee.east) -- (logoutE.west);
-
 % Administrator links
 \draw[link] (admin.west) -- (loginA.east);
 \draw[link] (admin.west) -- (addemp.east);
 \draw[link] (admin.west) -- (viewall.east);
 \draw[link] (admin.west) -- (filter.east);
 \draw[link] (admin.west) -- (decision.east);
-
 \end{tikzpicture}%
+
 }
+
 \caption{Use-case diagram of the LeaveFlow system}
+
 \label{fig:use-case}
+
 \end{figure}
+
+
 
 \section{Sequence Diagram}
 
+
+
 The sequence diagram illustrates the flow of a leave application
+
 from the employee to the backend components. The employee submits
+
 the application through the web interface. Flask validates the
+
 request fields and invokes the C++ executable to validate the dates,
+
 calculate the duration, and check the maximum permitted leave
+
 duration. If validation succeeds, the C++ backend saves the request
+
 with a pending status and returns the result to Flask, which
+
 communicates the outcome to the browser.
 
+
+
 \begin{figure}[htbp]
+
 \centering
+
 \resizebox{0.95\textwidth}{!}{%
+
 \begin{tikzpicture}[
     actor/.style={
         draw,
@@ -222,50 +312,47 @@ communicates the outcome to the browser.
     lifeline/.style={dashed,gray},
     every node/.style={font=\scriptsize}
 ]
-
 % Participants
 \node[actor] (employee) at (0,0) {Employee};
 \node[actor] (browser) at (4,0) {Web Browser};
 \node[actor] (flask) at (8,0) {Flask Application};
 \node[actor] (cpp) at (12,0) {C++ Backend};
 \node[actor] (csv) at (16,0) {CSV File};
-
 % Lifelines
 \foreach \x in {0,4,8,12,16} {
     \draw[lifeline] (\x,-0.5) -- (\x,-10);
 }
-
 % Messages
 \draw[message] (0,-1) -- node[above] {Enter leave details} (4,-1);
-
 \draw[message] (4,-2) -- node[above] {Submit application (HTTP)} (8,-2);
-
 \draw[message] (8,-3) -- node[above] {Validate fields and role} (8,-3.8);
-
 \draw[message] (8,-4.2) -- node[above] {Launch executable with arguments} (12,-4.2);
-
 \draw[message] (12,-5.2) -- node[above] {Validate dates and duration} (12,-6);
-
 \draw[message] (12,-6.4) -- node[above] {Append pending request} (16,-6.4);
-
 \draw[message] (16,-7.2) -- node[above] {Write successful result} (12,-7.2);
-
 \draw[message] (12,-8) -- node[above] {Return output and exit status} (8,-8);
-
 \draw[message] (8,-8.8) -- node[above] {Return confirmation or error} (4,-8.8);
-
 \draw[message] (4,-9.6) -- node[above] {Display result} (0,-9.6);
-
 \end{tikzpicture}%
+
 }
+
 \caption{Sequence diagram for submitting a leave request}
+
 \label{fig:leave-sequence}
+
 \end{figure}
+
+
 
 The activity diagram summarizes the administrator's decision process after a leave request is submitted. The administrator reviews a pending request and either rejects it or attempts to approve it. Approval depends on the employee having sufficient leave balance; if the balance is insufficient, the request remains pending. This workflow distinguishes a rejected request from an approved request and shows why a balance check is required before deducting leave.
 
+
+
 \begin{figure}[htbp]
+
 \centering
+
 \begin{tikzpicture}[
     every node/.style={font=\small},
     box/.style={
@@ -280,19 +367,16 @@ The activity diagram summarizes the administrator's decision process after a lea
     },
     arrow/.style={->, >=Stealth, thick}
 ]
-
 \node[box] (start) at (0,0) {Start};
 \node[box] (login) at (0,-1.2) {Admin logs in};
 \node[box] (view) at (0,-2.4) {View pending leave requests};
 \node[box] (select) at (0,-3.6) {Select a leave request};
 \node[decision] (check) at (0,-4.8) {Admin chooses: Approve or Reject};
-
 \node[box] (reject) at (0,-6.0) {Reject: Set status to REJECTED};
 \node[box] (balance) at (0,-7.2) {Approve: Check leave balance};
 \node[box] (deduct) at (0,-8.4) {If sufficient, deduct balance and set APPROVED};
 \node[box] (pending) at (0,-9.6) {If insufficient, keep request PENDING};
 \node[box] (end) at (0,-10.8) {End};
-
 \draw[arrow] (start) -- (login);
 \draw[arrow] (login) -- (view);
 \draw[arrow] (view) -- (select);
@@ -302,16 +386,24 @@ The activity diagram summarizes the administrator's decision process after a lea
 \draw[arrow] (balance) -- (deduct);
 \draw[arrow] (deduct) -- (pending);
 \draw[arrow] (pending) -- (end);
-
 \end{tikzpicture}
+
 \caption{Activity diagram for leave request processing}
+
 \label{fig:activity-diagram}
+
 \end{figure}
+
+
 
 The class diagram presents the main object-oriented components used in LeaveFlow. The abstract \texttt{User} class represents shared user details and operations, while \texttt{Employee} and \texttt{Admin} provide role-specific behaviour. The \texttt{LeaveBalance} class manages the available leave categories. The abstract \texttt{Leave} class defines common leave operations, and \texttt{CasualLeave}, \texttt{SickLeave}, and \texttt{EarnedLeave} provide leave-type-specific behaviour, including maximum duration limits.
 
+
+
 \begin{figure}[htbp]
+
 \centering
+
 \begin{tikzpicture}[
     every node/.style={font=\scriptsize},
     class/.style={
@@ -321,226 +413,362 @@ The class diagram presents the main object-oriented components used in LeaveFlow
     },
     arrow/.style={-{Stealth}, thick}
 ]
-
 \node[class] (user) at (0,0) {
     \textbf{User (Abstract)}\\
-    \hline
+    
     \texttt{\# userId, name, password}\\
-    \hline
+    
     + displayProfile()\\
     + checkPassword()
 };
-
 \node[class] (employee) at (-4,-3.5) {
     \textbf{Employee}\\
-    \hline
+    
     + email, phone, department\\
     + displayProfile()\\
     + getBalance()
 };
-
 \node[class] (admin) at (4,-3.5) {
     \textbf{Admin}\\
-    \hline
-    \textit{Implements User}\\
+    
+    \textit{*Implements User*}\\
     + displayProfile()
 };
-
 \node[class] (balance) at (-4,-7) {
     \textbf{LeaveBalance}\\
-    \hline
+    
     - casual, sick, earned\\
-    \hline
+    
     + getBalance()\\
     + deductLeave()\\
     + displayBalance()
 };
-
 \node[class] (leave) at (4,-7) {
     \textbf{Leave (Abstract)}\\
-    \hline
+    
     \# leaveId, startDate, endDate\\
     \# reason\\
-    \hline
+    
     + calculateDays()\\
     + getLeaveType()\\
     + getMaximumDays()
 };
-
 \node[class] (casual) at (0,-10.5) {
     \textbf{CasualLeave}\\
-    \hline
+    
     + getLeaveType()\\
     + getMaximumDays()
 };
-
 \node[class] (sick) at (4,-10.5) {
     \textbf{SickLeave}\\
-    \hline
+    
     + getLeaveType()\\
     + getMaximumDays()
 };
-
 \node[class] (earned) at (8,-10.5) {
     \textbf{EarnedLeave}\\
-    \hline
+    
     + getLeaveType()\\
     + getMaximumDays()
 };
-
 \draw[arrow] (user.south) -- (employee.north);
 \draw[arrow] (user.south) -- (admin.north);
 \draw[arrow] (employee.south) -- (balance.north);
 \draw[arrow] (leave.south) -- (casual.north);
 \draw[arrow] (leave.south) -- (sick.north);
 \draw[arrow] (leave.south) -- (earned.north);
-
 \end{tikzpicture}
+
 \caption{Class diagram showing the main C++ classes in LeaveFlow}
+
 \label{fig:class-diagram}
+
 \end{figure}
+
+
 
 \section{Implementation Procedure}
 
+
+
 \subsection{Frontend Design}
+
+
 
 The frontend of LeaveFlow provides a user-friendly web interface for employees and administrators. It is developed using HTML and CSS, with JavaScript used where required for user interactions. The interface includes a login page, an employee dashboard, a leave application form, and an administrative dashboard.
 
+
+
 The login page allows users to enter their credentials and select their role. After successful authentication, employees can view their leave balances, submit leave requests, and track their request status. Administrators can access employee management and leave request review features.
+
+
 
 The frontend communicates with the Flask application, which processes user requests and connects the interface to the backend logic and data storage.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.8\textwidth]{screenshots/login.png}
-\caption{LeaveFlow login interface}
-\label{fig:login-interface}
-\end{figure}
+
 
 \begin{figure}[htbp]
+
 \centering
-\includegraphics[width=0.9\textwidth]{screenshots/employee_dashboard.png}
-\caption{Employee dashboard displaying leave balances and request information}
-\label{fig:employee-dashboard}
+
+\IfFileExists{screenshots/login.png}{\IfFileExists{screenshots/login.png}{\includegraphics[width=0.8\textwidth]{screenshots/login.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/login.png}}}}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot placeholder: screenshots/login.png}}}
+
+\caption{LeaveFlow login interface}
+
+\label{fig:login-interface}
+
 \end{figure}
+
+
+
+\begin{figure}[htbp]
+
+\centering
+
+\IfFileExists{screenshots/employee_dashboard.png}{\includegraphics[width=0.9\textwidth]{screenshots/employee_dashboard.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/employee\_dashboard.png}}}}
+
+\caption{Employee dashboard displaying leave balances and request information}
+
+\label{fig:employee-dashboard}
+
+\end{figure}
+
+
 
 \subsection{Login and Role-Based Security}
 
+
+
 LeaveFlow provides a login interface for employees and administrators. Users enter their credentials and select their role. The Flask application validates the login details using the user information stored in \texttt{users.json}. After successful authentication, a session is established to maintain the user's login state.
+
+
 
 Role-based access control restricts access to different features. Employees can submit leave requests, view their own requests, and check their leave balances. Administrators can view all leave requests, manage employee accounts, and approve or reject requests.
 
+
+
 The application checks the user's session and role before allowing access to protected routes. This prevents employees from accessing administrator-only operations through restricted URLs.
 
+
+
 \begin{figure}[htbp]
+
 \centering
-\includegraphics[width=0.65\textwidth]{screenshots/login_security.png}
+
+\IfFileExists{screenshots/login_security.png}{\includegraphics[width=0.65\textwidth]{screenshots/login_security.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/login\_security.png}}}}
+
 \caption{Login interface showing credential fields and role selection}
+
 \label{fig:login-security}
+
 \end{figure}
+
+
 
 The following simplified Python example illustrates session-based access control:
 
+
+
 \begin{verbatim}
+
 from flask import session, redirect, url_for
 
+
+
 @app.route('/requests')
+
 def requests_page():
+
     if 'username' not in session:
+
         return redirect(url_for('login'))
 
+
+
     if session.get('role') != 'admin':
+
         return "Access denied", 403
 
+
+
     return render_template('requests.html')
+
 \end{verbatim}
 
+
+
 The session check ensures that the user is logged in, while the role check restricts the request-management page to administrators.
+
 \subsection{Leave Request Submission}
+
+
 
 Employees can submit leave requests by selecting the leave type, entering the start and end dates, and providing a reason. The Flask application receives the submitted details and invokes the C++ backend executable using Python's \texttt{subprocess} module.
 
+
+
 The C++ backend validates the dates, calculates the leave duration, and checks the maximum permitted duration for the selected leave type. If the request is valid, it is stored in \texttt{leave\_requests.csv} with an initial status of \texttt{PENDING}. The result is returned to Flask, which displays a confirmation or error message to the employee.
 
+
+
 \begin{figure}[htbp]
+
 \centering
-\includegraphics[width=0.85\textwidth]{screenshots/leave_application.png}
+
+\IfFileExists{screenshots/leave_application.png}{\includegraphics[width=0.85\textwidth]{screenshots/leave_application.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/leave\_application.png}}}}
+
 \caption{Leave application form used by employees}
+
 \label{fig:leave-application}
+
 \end{figure}
+
+
 
 The following simplified Python example illustrates how Flask invokes the C++ backend:
 
+
+
 \begin{verbatim}
+
 import subprocess
 
+
+
 result = subprocess.run(
+
     ["backend/leave_backend.exe",
+
      employee_id, leave_type,
+
      start_date, end_date, reason],
+
     capture_output=True,
+
     text=True
+
 )
+
 \end{verbatim}
+
+
 
 The backend's output and exit status are used by the Flask application to determine whether the request was processed successfully. This integration combines the web interface with the C++ leave-validation logic.
 
+
+
 \subsection{Admin Approval, Rejection, and Leave-Balance Updates}
+
+
 
 The administrator reviews pending leave requests through the admin dashboard. Each request displays the employee ID, leave type, dates, duration, reason, and current status. The administrator can approve or reject a request using the available controls.
 
+
+
 When a request is approved, the Flask application verifies the employee's available leave balance. If sufficient balance is available, the requested number of days is deducted and the request status is changed to \texttt{APPROVED}. If the administrator rejects the request, its status becomes \texttt{REJECTED}, and the employee's balance remains unchanged.
+
+
 
 The updated request status is displayed in the employee's request history. This allows employees to track the outcome of their applications. Keeping approval and rejection actions in the administrator interface also gives the workflow a clear separation of responsibilities: employees submit requests, while administrators review them. The balance is deducted only when a request is approved and the available balance is sufficient.
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.9\textwidth]{screenshots/pending_requests.png}
+
+\IfFileExists{screenshots/pending_requests.png}{\includegraphics[width=0.9\textwidth]{screenshots/pending_requests.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/pending\_requests.png}}}}
+
 \caption{Administrator interface for approving or rejecting pending leave requests}
+
 \label{fig:admin-review}
+
 \end{figure}
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.75\textwidth]{screenshots/approval_confirmation.png}
+
+\IfFileExists{screenshots/approval_confirmation.png}{\includegraphics[width=0.75\textwidth]{screenshots/approval_confirmation.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/approval\_confirmation.png}}}}
+
 \caption{Successful leave request approval confirmation}
+
 \label{fig:approval-success}
+
 \end{figure}
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.85\textwidth]{screenshots/request_history.png}
+
+\IfFileExists{screenshots/request_history.png}{\includegraphics[width=0.85\textwidth]{screenshots/request_history.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/request\_history.png}}}}
+
 \caption{Employee request history displaying approved and rejected requests}
+
 \label{fig:updated-request-status}
+
 \end{figure}
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.9\textwidth]{screenshots/updated_balances.png}
+
+\IfFileExists{screenshots/updated_balances.png}{\includegraphics[width=0.9\textwidth]{screenshots/updated_balances.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/updated\_balances.png}}}}
+
 \caption{Updated leave balances after approval of a leave request}
+
 \label{fig:balance-update}
+
 \end{figure}
+
+
 
 \subsection{Data Storage and Management}
 
+
+
 LeaveFlow uses JSON and CSV files for persistent local data storage. These files maintain employee information, leave balances, and leave request records.
 
+
+
 \begin{itemize}
+
     \item \textbf{users.json:} Stores employee account information used by the Flask application during authentication.
-    
+
+
+
     \item \textbf{leave\_balances.json:} Stores the available casual, sick, and earned leave balances for employees. The application updates these balances when leave requests are approved.
-    
+
+
+
     \item \textbf{leave\_requests.csv:} Stores submitted leave requests, including employee ID, leave type, start date, end date, duration, reason, and request status.
+
 \end{itemize}
+
+
 
 The Flask application reads and updates these files to display request histories, manage employee balances, and process administrative decisions. The C++ backend appends valid leave requests to the CSV file with an initial status of \texttt{PENDING}.
 
+
+
 During approval or rejection, the application updates the relevant records. Temporary files are used before replacing the original files during updates, helping reduce the risk of partially written data.
+
+
 
 This file-based approach is suitable for a small academic project because it is simple to implement and does not require a separate database server. Each file has a distinct responsibility: account data supports authentication, balance data supports leave availability checks, and request records preserve the history and current status of applications. Because these files are local, the application is best suited to a small demonstration or academic deployment rather than a high-concurrency production environment.
 
+
+
 \begin{figure}[htbp]
+
 \centering
+
 \begin{tikzpicture}[
     every node/.style={font=\small},
     component/.style={
@@ -550,209 +778,386 @@ This file-based approach is suitable for a small academic project because it is 
     },
     arrow/.style={->, >=Stealth, thick}
 ]
-
 \node[component] (flask) at (0,0)
     {Flask Application};
-
 \node[component] (users) at (-4,-2)
     {\texttt{users.json}\\Employee Accounts};
-
 \node[component] (balances) at (0,-2)
     {\texttt{leave\_balances.json}\\Leave Balances};
-
 \node[component] (requests) at (4,-2)
     {\texttt{leave\_requests.csv}\\Leave Requests};
-
 \node[component] (cpp) at (4,-4)
     {C++ Backend};
-
 \draw[arrow,<->] (flask) -- (users);
 \draw[arrow,<->] (flask) -- (balances);
 \draw[arrow,<->] (flask) -- (requests);
 \draw[arrow] (cpp) -- (requests);
-
 \end{tikzpicture}
+
 \caption{Data storage and interaction between the application components}
+
 \label{fig:data-storage}
+
 \end{figure}
 
+
+
 \clearpage
+
 \section{Testing and Results}
+
+
 
 The LeaveFlow application was tested to verify its main features and the interaction between the frontend, Flask application, C++ backend, and local data files.
 
+
+
 \begin{table}[H]
+
 \centering
+
 \caption{Functional testing of LeaveFlow}
+
 \label{tab:functional-testing}
+
 \renewcommand{\arraystretch}{1.2}
+
 \begin{tabularx}{\textwidth}{|>{\centering\arraybackslash}p{1.1cm}|p{3.3cm}|X|}
+
 \hline
+
 \textbf{S.No.} & \textbf{Test Case} & \textbf{Expected Result} \\
+
 \hline
+
 1 & User login & The user accesses the appropriate interface after successful authentication. \\
+
 \hline
+
 2 & Submit leave request & A valid request is stored with \texttt{PENDING} status. \\
+
 \hline
+
 3 & Approve leave request & The status changes to \texttt{APPROVED}, and the available leave balance is reduced. \\
+
 \hline
+
 4 & Reject leave request & The status changes to \texttt{REJECTED} without deducting leave. \\
+
 \hline
+
 5 & View request history & The employee can view the status of their submitted requests. \\
+
 \hline
+
 6 & Role-based access & Administrative operations are restricted to authorized administrators. \\
+
 \hline
+
 7 & View leave balance & The employee can view updated casual, sick, and earned leave balances. \\
+
 \hline
+
 \end{tabularx}
+
 \end{table}
+
+
 
 The screenshots demonstrate the application's login interface, pending requests, approval confirmation, request history, and updated leave balances. In the demonstrated two-day sick-leave approval, the available sick-leave balance decreased from 10 days to 8 days.
 
+
+
 The results show that the major application workflows operate across the web interface, Flask application, C++ backend, and local data files. The test cases cover successful actions, such as login and approval, as well as access and status checks, such as role restrictions and rejection without balance deduction. Together, these checks provide evidence that the main employee and administrator workflows are connected end to end.
+
+
 
 \section{Additional Features}
 
+
+
 \subsection{Employee Account Creation}
+
+
 
 LeaveFlow allows administrators to create employee accounts through the employee management interface. The administrator enters the employee's name and a temporary password. The application creates the account and initializes the default casual, sick, and earned leave balances. This feature simplifies employee onboarding.
 
+
+
 \begin{figure}[htbp]
+
 \centering
-\includegraphics[width=0.9\textwidth]{screenshots/add_employee.png}
+
+\IfFileExists{screenshots/add_employee.png}{\includegraphics[width=0.9\textwidth]{screenshots/add_employee.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/add\_employee.png}}}}
+
 \caption{Interface for adding a new employee}
+
 \label{fig:add-employee}
+
 \end{figure}
+
+
 
 \subsection{Leave Request Filtering}
 
+
+
 Administrators can filter leave requests by status, including All Requests, Pending, Approved, and Rejected. This makes it easier to find requests that need attention and review previously processed applications.
 
+
+
 \begin{figure}[htbp]
+
 \centering
-\includegraphics[width=0.9\textwidth]{screenshots/request_filter.png}
+
+\IfFileExists{screenshots/request_filter.png}{\includegraphics[width=0.9\textwidth]{screenshots/request_filter.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/request\_filter.png}}}}
+
 \caption{Filtering leave requests by status}
+
 \label{fig:request-filter}
+
 \end{figure}
+
+
 
 \subsection{Administrative Summary Dashboard}
 
+
+
 The administrative dashboard summarizes leave activity, including the total number of requests and the numbers of approved and rejected applications. It also displays pending requests, helping the administrator quickly understand the current state of leave processing.
 
+
+
 \begin{figure}[htbp]
+
 \centering
-\includegraphics[width=0.95\textwidth]{screenshots/admin_summary.png}
+
+\IfFileExists{screenshots/admin_summary.png}{\includegraphics[width=0.95\textwidth]{screenshots/admin_summary.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/admin\_summary.png}}}}
+
 \caption{Administrative dashboard showing leave request statistics}
+
 \label{fig:admin-summary}
+
 \end{figure}
+
+
 
 \subsection{C++ and Flask Integration}
 
+
+
 Flask invokes the compiled C++ executable with the employee ID, leave type, start date, end date, and reason. The executable processes the arguments and returns output and an exit status. Flask uses this result to decide whether to display a success or error message to the employee. This integration allows the web interface and C++ validation logic to work together.
 
+
+
 \begin{verbatim}
+
 result = subprocess.run(
+
     ["backend/leave_backend.exe",
+
      employee_id, leave_type,
+
      start_date, end_date, reason],
+
     capture_output=True,
+
     text=True
+
 )
 
+
+
 if result.returncode == 0:
+
     message = result.stdout
+
 else:
+
     message = result.stderr or result.stdout
+
 \end{verbatim}
+
+
 
 The snippet is illustrative and should be checked against the actual Flask route before being described as an exact extract from the source code.
 
+
+
 \subsection{Date and Leave-Duration Validation}
+
+
 
 LeaveFlow incorporates date validation and leave-duration calculation in its C++ backend. The abstract \texttt{Leave} class defines the common structure and operations for different leave types. Its \texttt{calculateDays()} function parses the start and end dates using \texttt{std::get\_time()}, converts them into time values using \texttt{std::mktime()}, and calculates the difference between the dates.
 
+
+
 The function returns zero if date parsing or time conversion fails. For valid conversions, it calculates the duration in days and adds one to include both the start and end dates.
 
+
+
 \begin{verbatim}
+
 int Leave::calculateDays() const {
+
     std::tm start = {};
+
     std::tm end = {};
 
+
+
     std::istringstream startInput(startDate);
+
     std::istringstream endInput(endDate);
 
+
+
     startInput >> std::get_time(&start, "%Y-%m-%d");
+
     endInput >> std::get_time(&end, "%Y-%m-%d");
 
+
+
     if (startInput.fail() || endInput.fail()) {
+
         return 0;
+
     }
+
+
 
     start.tm_isdst = -1;
+
     end.tm_isdst = -1;
 
+
+
     std::time_t startTime = std::mktime(&start);
+
     std::time_t endTime = std::mktime(&end);
 
-    if (startTime == static_cast<std::time_t>(-1) ||
-        endTime == static_cast<std::time_t>(-1)) {
+
+
+    if (startTime == static_cast\<std::time_t>(-1) ||
+
+        endTime == static_cast\<std::time_t>(-1)) {
+
         return 0;
+
     }
 
+
+
     double seconds = std::difftime(endTime, startTime);
-    int days = static_cast<int>(
-        seconds / (60 * 60 * 24)
+
+    int days = static_cast\<int>(
+
+        seconds / (60 \* 60 \* 24)
+
     );
 
+
+
     return days + 1;
+
 }
+
 \end{verbatim}
+
+
 
 The maximum permitted duration is defined separately for each leave type through polymorphism. For example, the \texttt{CasualLeave} class restricts casual leave to three days.
 
+
+
 \begin{verbatim}
+
 int CasualLeave::getMaximumDays() const {
+
     return 3;
+
 }
+
 \end{verbatim}
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.9\textwidth]{screenshots/date_parsing.png}
+
+\IfFileExists{screenshots/date_parsing.png}{\includegraphics[width=0.9\textwidth]{screenshots/date_parsing.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/date\_parsing.png}}}}
+
 \caption{Date parsing and validation in the calculateDays() function}
+
 \label{fig:date-parsing}
+
 \end{figure}
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.9\textwidth]{screenshots/duration_calculation.png}
+
+\IfFileExists{screenshots/duration_calculation.png}{\includegraphics[width=0.9\textwidth]{screenshots/duration_calculation.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/duration\_calculation.png}}}}
+
 \caption{Time conversion and leave-duration calculation in Leave.cpp}
+
 \label{fig:duration-calculation}
+
 \end{figure}
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.85\textwidth]{screenshots/leave_base_class.png}
+
+\IfFileExists{screenshots/leave_base_class.png}{\includegraphics[width=0.85\textwidth]{screenshots/leave_base_class.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/leave\_base\_class.png}}}}
+
 \caption{Abstract Leave class with virtual functions}
+
 \label{fig:leave-base-class}
+
 \end{figure}
 
+
+
 \begin{figure}[H]
+
 \centering
-\includegraphics[width=0.85\textwidth]{screenshots/casual_leave_limit.png}
+
+\IfFileExists{screenshots/casual_leave_limit.png}{\includegraphics[width=0.85\textwidth]{screenshots/casual_leave_limit.png}}{\fbox{\parbox{0.75\textwidth}{\centering Screenshot not supplied: \texttt{screenshots/casual\_leave\_limit.png}}}}
+
 \caption{CasualLeave class defining the maximum permitted duration}
+
 \label{fig:casual-leave-limit}
+
 \end{figure}
+
+
 
 This design keeps the common date-calculation logic in the base class while allowing derived classes to specify their own leave-duration limits. The same approach can be used for sick leave and earned leave.
 
+
+
 \clearpage
+
 \section{Conclusion}
+
+
 
 LeaveFlow is a web-based Employee Leave Management System developed to simplify and streamline the leave application and approval process. It provides separate interfaces for employees and administrators, enabling employees to apply for leave, view their leave balances, and track request statuses, while administrators can manage employee accounts and process leave requests.
 
+
+
 The system integrates HTML and CSS for the user interface, Flask for application logic, and C++ for leave validation and duration calculation. JSON and CSV files are used for data storage. The project demonstrates object-oriented programming concepts such as abstraction, inheritance, encapsulation, and polymorphism, along with integration between different programming technologies.
 
+
+
 The successful implementation of the major workflows demonstrates how LeaveFlow can make leave management more organized, efficient, and transparent.
+
+
 
 \end{document}
