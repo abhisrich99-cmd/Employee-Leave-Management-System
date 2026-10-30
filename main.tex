@@ -22,12 +22,49 @@
 \usepackage{array}
 \usepackage{titlesec}
 \usepackage{caption}
+\usepackage{placeins}
+\usepackage{listings}
+\usepackage{chngcntr}
 
 \usetikzlibrary{arrows.meta,shapes.geometric}
 
 
 
 \geometry{margin=1in}
+\raggedbottom
+\setlength{\textfloatsep}{12pt plus 2pt minus 2pt}
+\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\renewcommand{\topfraction}{0.90}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.10}
+\renewcommand{\floatpagefraction}{0.75}
+
+% Number code listings by section (for example, Code 27.3.1)
+\AtBeginDocument{%
+    \counterwithin{lstlisting}{section}%
+    \renewcommand{\thelstlisting}{\thesection.\arabic{lstlisting}}%
+}
+\renewcommand{\lstlistingname}{Code}
+\lstset{
+    frame=single,
+    rulecolor=\color{black},
+    backgroundcolor=\color{gray!5},
+    basicstyle=\ttfamily\small,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    breaklines=true,
+    breakatwhitespace=false,
+    showstringspaces=false,
+    keepspaces=true,
+    columns=fullflexible,
+    captionpos=b,
+    xleftmargin=5pt,
+    xrightmargin=5pt,
+    aboveskip=12pt,
+    belowskip=12pt
+}
 
 % Consistent report typography and numbered elements
 \setcounter{secnumdepth}{3}
@@ -38,6 +75,7 @@
 \renewcommand{\thefigure}{\thechapter.\arabic{figure}}
 \renewcommand{\thetable}{\thechapter.\arabic{table}}
 \captionsetup{font=small,labelfont=bf,justification=centering}
+\captionsetup[table]{position=bottom}
 \titleformat{\chapter}[display]
   {\normalfont\bfseries\Huge}{\chaptername\ \thechapter}{10pt}{\Huge}
 \titleformat{\section}{\normalfont\Large\bfseries}{\thesection}{0.8em}{}
@@ -83,6 +121,7 @@ backend for leave validation and processing.
         rounded corners=3pt,
         align=center,
         text width=10cm,
+        minimum height=2.2cm,
         inner sep=8pt,
         font=\small
     },
@@ -110,14 +149,14 @@ backend for leave validation and processing.
     Leave Application, Request Status, Leave Balances
 };
 % Flask layer
-\node[main] (flask) at (0,-3.0) {
+\node[main] (flask) at (0,-3.2) {
     \textbf{APPLICATION LAYER -- FLASK (PYTHON)}\\[4pt]
     Authentication and Role-Based Access Control\\
     Employee and Administrator Routes\\
     Request Handling, Status Updates, Balance Management
 };
 % C++ processing layer
-\node[main] (cpp) at (0,-6.0) {
+\node[main] (cpp) at (0,-6.4) {
     \textbf{C++ PROCESSING LAYER}\\[4pt]
     \texttt{leave\_backend.exe} (compiled C++ program)\\
     Abstract Leave Class and Derived Leave Classes\\
@@ -125,30 +164,30 @@ backend for leave validation and processing.
     Invoked by Flask through a subprocess
 };
 % Data storage heading
-\node[font=\bfseries] at (0,-8.5) {
+\node[font=\bfseries] at (0,-8.1) {
     LOCAL DATA STORAGE
 };
 % Data files
-\node[storage] (users) at (-4.0,-10) {
+\node[storage] (users) at (-4.0,-9.5) {
     \textbf{USER ACCOUNTS}\\[3pt]
     \texttt{users.json}\\
     Names, passwords, roles
 };
-\node[storage] (balances) at (0,-10) {
+\node[storage] (balances) at (0,-9.5) {
     \textbf{LEAVE BALANCES}\\[3pt]
     \texttt{leave\_balances.json}\\
     Casual, Sick, Earned
 };
-\node[storage] (requests) at (4.0,-10) {
+\node[storage] (requests) at (4.0,-9.5) {
     \textbf{LEAVE REQUESTS}\\[3pt]
     \texttt{leave\_requests.csv}\\
     Dates, duration, status
 };
 % Simple vertical arrows
-\draw[flow] (web.south) -- (flask.north);
-\draw[flow] (flask.south) -- (cpp.north);
+\draw[flow] (0,-1.1) -- (0,-2.1);
+\draw[flow] (0,-4.3) -- (0,-5.3);
 % Storage relationship description
-\node[font=\scriptsize,align=center] at (0,-11.4) {
+\node[font=\scriptsize,align=center] at (0,-10.8) {
     Flask reads and updates local JSON and CSV files.\\
     The C++ backend appends validated requests to the CSV file.
 };
@@ -170,8 +209,6 @@ LeaveFlow combines web technologies, Python, C++, and local file storage. Each t
 
 \begin{table}[htbp]
 \centering
-\caption{Technology stack used in LeaveFlow}
-\label{tab:technology-stack}
 \renewcommand{\arraystretch}{1.25}
 \begin{tabularx}{\textwidth}{|p{3.1cm}|p{3.2cm}|X|}
 \hline
@@ -182,6 +219,8 @@ Processing backend & C++ & Implements leave-related classes and validates dates,
 Local storage & JSON and CSV files & Stores account information, leave balances, and leave-request records. \\ \hline
 Integration & Python \texttt{subprocess} & Allows Flask to run the compiled C++ executable and receive its output and exit status. \\ \hline
 \end{tabularx}
+\caption{Technology stack used in LeaveFlow}
+\label{tab:technology-stack}
 \end{table}
 
 The technologies are connected so that the frontend collects user input, Flask coordinates the web workflow, C++ performs the required leave-processing operations, and the local files preserve the application data.
@@ -224,7 +263,9 @@ and approve or reject pending applications.
         ellipse,
         align=center,
         minimum width=3.2cm,
-        minimum height=0.9cm,
+        text width=2.7cm,
+        minimum height=1cm,
+        inner sep=2pt,
         font=\small
     },
     link/.style={draw,thick}
@@ -236,17 +277,17 @@ and approve or reject pending applications.
 \node[actor] (employee) at (-2,5.7) {Employee};
 \node[actor] (admin) at (13,5.7) {Administrator};
 % Employee use cases
-\node[usecase] (loginE) at (2,6.5) {Log In};
-\node[usecase] (balance) at (2,5.1) {View Leave Balance};
-\node[usecase] (apply) at (2,3.7) {Apply for Leave};
-\node[usecase] (myrequests) at (2,2.3) {View My Requests};
-\node[usecase] (logoutE) at (2,0.9) {Log Out};
+\node[usecase] (loginE) at (2.5,6.5) {Log In};
+\node[usecase] (balance) at (2.5,5.1) {View Leave Balance};
+\node[usecase] (apply) at (2.5,3.7) {Apply for Leave};
+\node[usecase] (myrequests) at (2.5,2.3) {View My Requests};
+\node[usecase] (logoutE) at (2.5,0.9) {Log Out};
 % Administrator use cases
-\node[usecase] (loginA) at (8,6.5) {Log In};
-\node[usecase] (addemp) at (8,5.1) {Add Employee};
-\node[usecase] (viewall) at (8,3.7) {View All Requests};
-\node[usecase] (filter) at (8,2.3) {Filter Requests};
-\node[usecase] (decision) at (8,0.9) {Approve / Reject Leave};
+\node[usecase] (loginA) at (8.5,6.5) {Log In};
+\node[usecase] (addemp) at (8.5,5.1) {Add Employee};
+\node[usecase] (viewall) at (8.5,3.7) {View All Requests};
+\node[usecase] (filter) at (8.5,2.3) {Filter Requests};
+\node[usecase] (decision) at (8.5,0.9) {Approve / Reject Leave};
 % Employee links
 \draw[link] (employee.east) -- (loginE.west);
 \draw[link] (employee.east) -- (balance.west);
@@ -354,38 +395,42 @@ The activity diagram summarizes the administrator's decision process after a lea
 \centering
 
 \begin{tikzpicture}[
-    every node/.style={font=\small},
+    every node/.style={font=\scriptsize},
     box/.style={
         rectangle, draw, rounded corners,
-        text width=5cm, minimum height=0.7cm,
-        align=center
+        text width=8.5cm, minimum height=1.0cm,
+        align=center, inner sep=2pt,
+        text height=1.5ex, text depth=0.5ex
     },
     decision/.style={
         rectangle, draw,
-        text width=5cm, minimum height=0.7cm,
-        align=center
+        text width=8.5cm, minimum height=1.0cm,
+        align=center, inner sep=2pt,
+        text height=1.5ex, text depth=0.5ex
     },
     arrow/.style={->, >=Stealth, thick}
 ]
 \node[box] (start) at (0,0) {Start};
-\node[box] (login) at (0,-1.2) {Admin logs in};
-\node[box] (view) at (0,-2.4) {View pending leave requests};
-\node[box] (select) at (0,-3.6) {Select a leave request};
-\node[decision] (check) at (0,-4.8) {Admin chooses: Approve or Reject};
-\node[box] (reject) at (0,-6.0) {Reject: Set status to REJECTED};
-\node[box] (balance) at (0,-7.2) {Approve: Check leave balance};
-\node[box] (deduct) at (0,-8.4) {If sufficient, deduct balance and set APPROVED};
-\node[box] (pending) at (0,-9.6) {If insufficient, keep request PENDING};
-\node[box] (end) at (0,-10.8) {End};
-\draw[arrow] (start) -- (login);
-\draw[arrow] (login) -- (view);
-\draw[arrow] (view) -- (select);
-\draw[arrow] (select) -- (check);
-\draw[arrow] (check) -- (reject);
-\draw[arrow] (reject) -- (balance);
-\draw[arrow] (balance) -- (deduct);
-\draw[arrow] (deduct) -- (pending);
-\draw[arrow] (pending) -- (end);
+\node[box] (login) at (0,-1.5) {Admin logs in};
+\node[box] (view) at (0,-3.0) {View pending leave requests};
+\node[box] (select) at (0,-4.5) {Select a leave request};
+\node[decision] (check) at (0,-6.0) {Admin chooses: Approve or Reject};
+\node[box] (reject) at (0,-7.5) {Reject: Set status to REJECTED};
+\node[box] (balance) at (0,-9.0) {Approve: Check leave balance};
+\node[box] (deduct) at (0,-10.5) {If sufficient, deduct balance and set APPROVED};
+\node[box] (pending) at (0,-12.0) {If insufficient, keep request PENDING};
+\node[box] (end) at (0,-13.5) {End};
+
+% Equal-length vertical connectors between identically sized boxes
+\draw[arrow] (start.south) -- (login.north);
+\draw[arrow] (login.south) -- (view.north);
+\draw[arrow] (view.south) -- (select.north);
+\draw[arrow] (select.south) -- (check.north);
+\draw[arrow] (check.south) -- (reject.north);
+\draw[arrow] (reject.south) -- (balance.north);
+\draw[arrow] (balance.south) -- (deduct.north);
+\draw[arrow] (deduct.south) -- (pending.north);
+\draw[arrow] (pending.south) -- (end.north);
 \end{tikzpicture}
 
 \caption{Activity diagram for leave request processing}
@@ -569,8 +614,7 @@ The following simplified Python example illustrates session-based access control
 
 
 
-\begin{verbatim}
-
+\begin{lstlisting}[language=Python,caption={Session-based access control},label={code:example-1}]
 from flask import session, redirect, url_for
 
 
@@ -592,8 +636,7 @@ def requests_page():
 
 
     return render_template('requests.html')
-
-\end{verbatim}
+\end{lstlisting}
 
 
 
@@ -629,8 +672,7 @@ The following simplified Python example illustrates how Flask invokes the C++ ba
 
 
 
-\begin{verbatim}
-
+\begin{lstlisting}[language=Python,caption={Invoking the C++ backend using subprocess},label={code:example-2}]
 import subprocess
 
 
@@ -648,8 +690,7 @@ result = subprocess.run(
     text=True
 
 )
-
-\end{verbatim}
+\end{lstlisting}
 
 
 
@@ -802,7 +843,7 @@ This file-based approach is suitable for a small academic project because it is 
 
 
 
-\clearpage
+\FloatBarrier
 
 \section{Testing and Results}
 
@@ -815,10 +856,6 @@ The LeaveFlow application was tested to verify its main features and the interac
 \begin{table}[H]
 
 \centering
-
-\caption{Functional testing of LeaveFlow}
-
-\label{tab:functional-testing}
 
 \renewcommand{\arraystretch}{1.2}
 
@@ -859,6 +896,9 @@ The LeaveFlow application was tested to verify its main features and the interac
 \hline
 
 \end{tabularx}
+
+\caption{Functional testing of LeaveFlow}
+\label{tab:functional-testing}
 
 \end{table}
 
@@ -950,8 +990,7 @@ Flask invokes the compiled C++ executable with the employee ID, leave type, star
 
 
 
-\begin{verbatim}
-
+\begin{lstlisting}[language=Python,caption={Handling the C++ backend result},label={code:example-3}]
 result = subprocess.run(
 
     ["backend/leave_backend.exe",
@@ -975,8 +1014,7 @@ if result.returncode == 0:
 else:
 
     message = result.stderr or result.stdout
-
-\end{verbatim}
+\end{lstlisting}
 
 
 
@@ -996,8 +1034,7 @@ The function returns zero if date parsing or time conversion fails. For valid co
 
 
 
-\begin{verbatim}
-
+\begin{lstlisting}[language=C++,caption={Leave duration calculation},label={code:example-4}]
 int Leave::calculateDays() const {
 
     std::tm start = {};
@@ -1061,8 +1098,7 @@ int Leave::calculateDays() const {
     return days + 1;
 
 }
-
-\end{verbatim}
+\end{lstlisting}
 
 
 
@@ -1070,15 +1106,13 @@ The maximum permitted duration is defined separately for each leave type through
 
 
 
-\begin{verbatim}
-
+\begin{lstlisting}[language=C++,caption={Maximum permitted casual-leave duration},label={code:example-5}]
 int CasualLeave::getMaximumDays() const {
 
     return 3;
 
 }
-
-\end{verbatim}
+\end{lstlisting}
 
 
 
@@ -1142,7 +1176,7 @@ This design keeps the common date-calculation logic in the base class while allo
 
 
 
-\clearpage
+\FloatBarrier
 
 \section{Conclusion}
 
